@@ -1,5 +1,9 @@
 // GameViewer.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
+#include <QGuiApplication>
+#include <QtWidgets/QListView.h>  
+#include <QtWidgets/QSplitter.h> 
+#include <QtWidgets/QFileSystemModel.h>  
 
 #include <iostream>
 #include <string>
@@ -9,7 +13,7 @@
 #include "JSONReader.h"
 #include "Game.h"
 
-int main()
+int main(int argc, char* argv[])
 {
     std::cout << "Hello World!\n";
 	
@@ -21,7 +25,10 @@ int main()
 
 	const std::string copyright = root["copyright"].asString();
 	const int totalGames        = root["totalGames"].asInt();
-	
+
+	std::cout << copyright << std::endl;
+	std::cout << totalGames << std::endl;
+
 
 	Json::Value games = root["dates"][0]["games"];
 	std::list<Game> gameList;
@@ -33,8 +40,20 @@ int main()
 		gameList.push_back(game);
 	}
 
+	QGuiApplication app(argc, argv);
+	QSplitter* splitter = new QSplitter;
 
-	std::cout << copyright << std::endl;
-	std::cout << totalGames << std::endl;
+	QFileSystemModel* model = new QFileSystemModel();
+	model->setRootPath(QDir::currentPath());
+
+	QListView* list = new QListView(splitter);
+	list->setModel(model);
+	list->setRootIndex(model->index(QDir::currentPath()));
+
+	return app.exec();
+
+
+
+
 
 }
