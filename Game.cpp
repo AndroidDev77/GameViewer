@@ -2,16 +2,22 @@
 
 Game::Game(Json::Value gameValue)
 {
-	calendarEventID  = gameValue["calendarEventID"].asString();
-	date             = gameValue["gameDate"].asString();
-	headline         = gameValue["content"]["editorial"]["recap"]["home"]["headline"].asString();
-	subheadline      = gameValue["content"]["editorial"]["recap"]["home"]["subhead"].asString();
+	calendarEventID = gameValue["calendarEventID"].asString();
+	date            = gameValue["gameDate"].asString();
+	headline        = gameValue["content"]["editorial"]["recap"]["home"]["headline"].asString();
+	subheadline     = gameValue["content"]["editorial"]["recap"]["home"]["subhead"].asString();
+	// subheadline is sometimes empty
+	if (subheadline.empty())
+	{
+		subheadline  = gameValue["content"]["editorial"]["recap"]["home"]["seoTitle"].asString();
+	}
+	blurb            = gameValue["content"]["editorial"]["recap"]["home"]["blurb"].asString();
 	isTie            = gameValue["isTie"].asBool();
 	// Image 0  is 1920x1080
 	// Image 3  is 960x640
 	// Image 9  is 480x270
 	// Image 12 is 320x180
-	imageUrl         = gameValue["content"]["editorial"]["recap"]["mlb"]["image"]["cuts"][9]["src"].asString();
+	imageUrl         = gameValue["content"]["editorial"]["recap"]["mlb"]["image"]["cuts"][12]["src"].asString();
 
 	//Set Away Team
 	away.score        = gameValue["teams"]["away"]["score"].asInt();
@@ -42,6 +48,11 @@ Game::Game(Json::Value gameValue)
 	home.leagueRecord.pct    = gameValue["teams"]["home"]["leagueRecord"]["pct"].asString();
 }
 
+Game::~Game()
+{
+
+}
+
 GameEvent_t Game::getWinner()
 {
 	if (!isTie)
@@ -63,3 +74,4 @@ GameEvent_t Game::getWinner()
 		return tie;
 	}
 }
+

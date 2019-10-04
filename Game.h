@@ -1,3 +1,5 @@
+#pragma once
+#include <QImage>
 #include <json/json.h>
 
 #include <string>
@@ -27,17 +29,23 @@ class Game
 {
 public:
 	std::string calendarEventID = "";
-	std::string date = "";
-	std::string headline = "";
-	std::string subheadline = "";
-	std::string imageUrl = "";
-	bool        isTie = false;
+	std::string date            = "";
+	std::string headline        = "";
+	std::string subheadline     = "";
+	std::string imageUrl        = "";
+	std::string blurb           = "";
+
+	bool        isTie           = false;
+	QImage      image;
 
 	GameEvent_t away;
 	GameEvent_t home;
 
-	Game(Json::Value gameRoot);
+	Game(Json::Value gameValue);
+	~Game();
 
 	GameEvent_t getWinner();
+
+
 };
 
