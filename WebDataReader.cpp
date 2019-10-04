@@ -31,6 +31,11 @@ static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb
 	return realsize;
 }
 
+WebDataReader::WebDataReader()
+{
+	curl = curl_easy_init();
+	res = CURLE_OK;
+}
 
 int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 {
@@ -57,7 +62,7 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 	return 0;
 }
 
-QImage WebDataReader::ReadImageFromURL(std::string url)
+QImage* WebDataReader::ReadImageFromURL(std::string url)
 {
 	MemoryStruct chunk;
 
@@ -85,8 +90,8 @@ QImage WebDataReader::ReadImageFromURL(std::string url)
 	res = curl_easy_perform(curl);
 
 	// Create Image
-	QImage image;
-	image.loadFromData((const uchar*)chunk.memory, chunk.size, "JPG");
+	QImage* image = new QImage();
+	image->loadFromData((const uchar*)chunk.memory, chunk.size, "JPG");
 
 	// Free Memory
 	free(chunk.memory);

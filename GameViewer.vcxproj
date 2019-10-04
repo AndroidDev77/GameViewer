@@ -157,14 +157,17 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameModel.cpp" />
     <ClCompile Include="GameViewer.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="WebDataReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameModel.h" />
+    <ClInclude Include="GameViewer.h" />
     <ClInclude Include="WebDataReader.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="genericLogo.jpg" />
     <Image Include="mlbBackground.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

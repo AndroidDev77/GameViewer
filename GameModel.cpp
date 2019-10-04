@@ -52,12 +52,14 @@ QVariant GameModel::data(const QModelIndex& index, int role) const
 
 	if (role == Qt::ForegroundRole)
 	{
-		return gameList->at(index.row()).image;;
+		
+		return *(gameList->at(index.row()).image);
 	}
 	if (role == Qt::DisplayRole)
 	{
 		return QVariant(gameList->at(index.row()).headline.c_str());
 	}
+	// Using Enum to fetch subheadline
 	if (role == Qt::ToolTipRole)
 	{
 		return QVariant(gameList->at(index.row()).subheadline.c_str());

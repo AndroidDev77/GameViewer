@@ -25,6 +25,7 @@ struct GameEvent_t {
 	LeagueRecord_t leagueRecord;
 };
 
+// Keeping Game Simple for fast access
 class Game
 {
 public:
@@ -36,7 +37,8 @@ public:
 	std::string blurb           = "";
 
 	bool        isTie           = false;
-	QImage      image;
+	// 14298 Bytes = 320x180
+	QImage*      image;
 
 	GameEvent_t away;
 	GameEvent_t home;
@@ -44,6 +46,7 @@ public:
 	Game(Json::Value gameValue);
 	~Game();
 
+private:
 	GameEvent_t getWinner();
 
 

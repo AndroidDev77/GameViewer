@@ -1,27 +1,7 @@
 // GameViewer.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-#include <iostream>
-#include <string>
-#include <vector>
 
-#include <iterator> 
-#include <QtWidgets/QApplication>
-#include <QGuiApplication>
-#include <QtWidgets/QListView>  
-#include <QtWidgets/QSplitter> 
-#include <QtWidgets/QBoxLayout>
-#include <QtWidgets/QGroupBox>
-#include <QtWidgets/QScrollArea>
-#include <QtCore/QStringListModel>  
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QStyledItemDelegate>
-#include <Qpainter>
-
-
-#include <json/json.h>
-#include "WebDataReader.h"
-#include "Game.h"
-#include "GameModel.h"
+#include "GameViewer.h"
 
 // Enlarges and custimizes Item on select
 class GameViewDelegate : public QStyledItemDelegate
@@ -96,86 +76,135 @@ protected:
 	}
 };
 
-int main(int argc, char* argv[])
+GameViewer::GameViewer()
 {
-	QApplication app(argc, argv);
+	reader = new WebDataReader();
+	model = new GameModel();
+	std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
+	//std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
 
-	Json::Value root;
-	WebDataReader reader;
-	
-	std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
-	reader.ReadJSONFromURL(url, &root);
-
-	const std::string copyright = root["copyright"].asString();
-	const int totalGames        = root["totalGames"].asInt();
-
-	std::cout << copyright << std::endl;
-	std::cout <<"Total Games: "<< totalGames << std::endl;
-
-
-	Json::Value games = root["dates"][0]["games"];
-	std::vector<Game> gameList;
-	Json::Value::iterator it;
-	for (it = games.begin(); it != games.end(); ++it)
+	int gamesCount = 0;
+	int secDay = 0;
+	//Get Todays date
+	time_t     now = time(0);
+	// Load Last Day that has games
+	while (gamesCount <= 0)
 	{
-		// Create Game
-		Game game(*it);
+		// Substract day if no games today
+		now -= secDay;
+		char       dateChar[11];
+		gmtime_s(&timeinfo, &now);
 
-		// Check Url is valid
-		if (game.imageUrl != "")
-		{
-			game.image = reader.ReadImageFromURL(game.imageUrl);
-		}
-		gameList.push_back(game);
+		// Replace YYYY-MM-DD with todays date
+		strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
+		size_t index = 0;
+		std::string currentUrl = url;
+		index = currentUrl.find("YYYY-MM-DD", index);
+
+		currentUrl.replace(index, 10, dateChar);
+		gamesCount = loadGames(currentUrl);
+		secDay = 86400;
 	}
+	//gamesCount = loadGames(url);
+	setupUI();
+	
 
+}
+
+GameViewer::~GameViewer()
+{
+	delete reader;
+	delete model;
+}
+
+void GameViewer::setupUI()
+{
 	// Set UI Items
-	QMainWindow *mainWindow = new QMainWindow();
-	mainWindow->setWindowTitle(QString("Today's MLB games"));
-	mainWindow->resize(1920, 1080);
-	QPixmap bkgnd("mlbBackground.jpg");
-	bkgnd = bkgnd.scaled(mainWindow->size(), Qt::IgnoreAspectRatio);
-	QPalette palette;
-	palette.setBrush(QPalette::Background, bkgnd);
-	mainWindow->setPalette(palette);
+	try {
+		QMainWindow* mainWindow = new QMainWindow();
+		mainWindow->setWindowTitle(QString("Today's MLB games"));
 
-	QWidget* centralWidget = new QWidget(mainWindow);
+		// rework to get screensize
+		mainWindow->resize(1920, 1080);
+		QPixmap bkgnd("mlbBackground.jpg");
+		bkgnd = bkgnd.scaled(mainWindow->size(), Qt::IgnoreAspectRatio);
+		QPalette palette;
+		palette.setBrush(QPalette::Background, bkgnd);
+		mainWindow->setPalette(palette);
 
-	QVBoxLayout* layout = new QVBoxLayout();
+		// Create ListView
+		QListView* listView = new QListView();
+		listView->setItemDelegate(new GameViewDelegate());
+		listView->setModel(model);
+		listView->setAutoFillBackground(false);  /* make backgrounds transparent */
+		listView->viewport()->setAutoFillBackground(false);
+
+		// Make it Horizontal
+		listView->setFlow(QListView::LeftToRight);
+
+		QScrollArea* scrollArea = new  QScrollArea();
+		scrollArea->resize(1920, 300);
+		scrollArea->setAutoFillBackground(false);  /* make backgrounds transparent */
+		scrollArea->viewport()->setAutoFillBackground(false);
+
+		QVBoxLayout* layout = new QVBoxLayout();
+		layout->addWidget(listView);
+		layout->addWidget(scrollArea);
+
+		QWidget* centralWidget = new QWidget(mainWindow);
+		centralWidget->setLayout(layout);
+		mainWindow->setCentralWidget(centralWidget);
+
+		// Set properties for selection Model
+		QItemSelectionModel* selectionModel = listView->selectionModel();
+
+		mainWindow->show();
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+}
+
+int GameViewer::loadGames(std::string url)
+{
+	try{
+		Json::Value root;
+		reader->ReadJSONFromURL(url, &root);
+
+		std::string copyright = root["copyright"].asString();
+		int totalGames        = root["totalGames"].asInt();
+
+		std::cout << copyright << std::endl;
+		std::cout <<"Total Games: "<< totalGames << std::endl;
+
+		Json::Value games = root["dates"][0]["games"];
 	
-	GameModel* model = new GameModel();
-	model->setList(&gameList);
+		gameList.clear();
+		Json::Value::iterator it;
+		for (it = games.begin(); it != games.end(); ++it)
+		{
+			// Create Game
+			Game game(*it);
 
-	QListView* listView = new QListView();
-	listView->setItemDelegate(new GameViewDelegate());
-	listView->setModel(model);
-	listView->setAutoFillBackground(false);  /* make backgrounds transparent */
-	listView->viewport()->setAutoFillBackground(false);
+			// Check Url is valid
+			if (game.imageUrl != "")
+			{
+				game.image = reader->ReadImageFromURL(game.imageUrl);
+			}
+			if (game.image == nullptr)
+			{
+				game.image = new QImage("genericLogo.jpg");
+			}
+			gameList.push_back(game);
+		}
+		model->setList(&gameList);
 
-	// Make it Horizontal
-	listView->setFlow(QListView::LeftToRight);
-
-
-	QScrollArea* scrollArea = new  QScrollArea();
-	scrollArea->resize(1920, 300);
-	scrollArea->setAutoFillBackground(false);  /* make backgrounds transparent */
-	scrollArea->viewport()->setAutoFillBackground(false); 
-
-	layout->addWidget(listView);
-	layout->addWidget(scrollArea);
-
-	centralWidget->setLayout(layout);
-	mainWindow->setCentralWidget(centralWidget);
-
-	// Set properties for selection Model
-	QItemSelectionModel* selectionModel = listView->selectionModel();
-	
-	mainWindow->show();
-	
-	return app.exec();
-
-
-
-
+		return totalGames;
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
 
 }

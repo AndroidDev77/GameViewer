@@ -2,6 +2,7 @@
 
 #include <list>
 #include "Game.h"
+#include <QtCore\Qobject.h>
 #include <QtCore\QAbstractItemModel>
 #include <QOpenGLTexture>
 #include <QPixmap>

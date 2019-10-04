@@ -6,13 +6,10 @@ Game::Game(Json::Value gameValue)
 	date            = gameValue["gameDate"].asString();
 	headline        = gameValue["content"]["editorial"]["recap"]["home"]["headline"].asString();
 	subheadline     = gameValue["content"]["editorial"]["recap"]["home"]["subhead"].asString();
-	// subheadline is sometimes empty
-	if (subheadline.empty())
-	{
-		subheadline  = gameValue["content"]["editorial"]["recap"]["home"]["seoTitle"].asString();
-	}
+
 	blurb            = gameValue["content"]["editorial"]["recap"]["home"]["blurb"].asString();
 	isTie            = gameValue["isTie"].asBool();
+
 	// Image 0  is 1920x1080
 	// Image 3  is 960x640
 	// Image 9  is 480x270
@@ -46,6 +43,22 @@ Game::Game(Json::Value gameValue)
 	home.leagueRecord.wins   = gameValue["teams"]["home"]["leagueRecord"]["wins"].asInt();
 	home.leagueRecord.losses = gameValue["teams"]["home"]["leagueRecord"]["losses"].asInt();
 	home.leagueRecord.pct    = gameValue["teams"]["home"]["leagueRecord"]["pct"].asString();
+
+	// Validate Data
+
+	// subheadline may sometimes be empty
+	if (subheadline.empty())
+	{
+		subheadline = gameValue["description"].asString();
+	}
+
+	// If headline is empty make it generic
+	if (headline.empty())
+	{
+		headline = away.team.name + " Vs " + home.team.name;
+	}
+
+
 }
 
 Game::~Game()
