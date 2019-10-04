@@ -58,40 +58,44 @@ protected:
 			painter->setPen(opt.palette.color(QPalette::Inactive, QPalette::Text));
 			zoomFactor = 0.6666; // Scale to get 150%
 		}
-
+		// Do calculations to center image
+		QPoint center = rect.center();
 		// draw headline and subheadline text
-		int heightBlock = rect.height() / 8; // 1 block per text and 6 blocks for image
-		int widthBlock = rect.width() * (16 / 9); // 16x9
+		int heightBlock = rect.height() / 8.0; // 1 block per text and 6 blocks for image
+
+		int imageWidth = rect.width() * zoomFactor;
+		int imageHeight = imageWidth * (9.0 / 16.0);
+		int imageLeft = (rect.width() - imageWidth) / 2 + rect.left();
+		int imageTop = (rect.height() - imageHeight) / 2 + rect.top();
 
 		// Set font
 		QFont font("Verdana", 12);
 		painter->setFont(font);
-
 		if (opt.state & QStyle::State_Selected)
 		{
 			font.setBold(true);
 			painter->drawText(QRect(rect.left(), rect.top(), rect.width(), heightBlock),
 				Qt::AlignCenter, headline);
 			font.setBold(false);
-			painter->drawText(QRect(rect.left(), rect.top() + heightBlock * 7, rect.width(), heightBlock),
+			int bottomTextTop = imageTop + heightBlock + imageHeight;
+			painter->drawText(QRect(rect.left(), bottomTextTop, rect.width(), heightBlock),
 				Qt::AlignCenter, subheadline);
 		}
-		painter->drawImage(QRect(rect.left(), rect.top() + heightBlock, image.width() *zoomFactor, image.height()* zoomFactor), image);
+
+		painter->drawImage(QRect(imageLeft, imageTop + heightBlock, imageWidth, imageHeight), image);
 		
 	}
 
 	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 	{
 		QSize result = QStyledItemDelegate::sizeHint(option, index);
-		result.setHeight(result.height() * 1.5);
+		result.setHeight(result.height() );
 		return result;
 	}
 };
 
 int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
-
 	QApplication app(argc, argv);
 
 	Json::Value root;
@@ -104,7 +108,7 @@ int main(int argc, char* argv[])
 	const int totalGames        = root["totalGames"].asInt();
 
 	std::cout << copyright << std::endl;
-	std::cout << totalGames << std::endl;
+	std::cout <<"Total Games: "<< totalGames << std::endl;
 
 
 	Json::Value games = root["dates"][0]["games"];

@@ -8,8 +8,13 @@
 class WebDataReader
 {
 public:
-	
 	int ReadJSONFromURL(std::string url, Json::Value* root);
 	QImage ReadImageFromURL(std::string url);
+
+	CURL* curl;
+	CURLcode res;
+
+
+
 };
 

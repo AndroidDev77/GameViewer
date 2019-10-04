@@ -34,8 +34,7 @@ static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb
 
 int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 {
-	CURL* curl;
-	CURLcode res;
+
 	std::string readBuffer;
 	curl = curl_easy_init();
 	if (curl) {
@@ -60,9 +59,6 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 
 QImage WebDataReader::ReadImageFromURL(std::string url)
 {
-	CURL* curl_handle;
-	CURLcode res;
-	
 	MemoryStruct chunk;
 
 	// Change to c++ later
@@ -72,21 +68,21 @@ QImage WebDataReader::ReadImageFromURL(std::string url)
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	// init curl 
-	curl_handle = curl_easy_init();
+	curl = curl_easy_init();
 
-	curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
 	// set callback function
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteImageMemoryCallback);
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void*)& chunk);
-	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteImageMemoryCallback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)& chunk);
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 
 	// Needed to bypass https check
-	curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, false);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
 
 	// perform action
-	res = curl_easy_perform(curl_handle);
+	res = curl_easy_perform(curl);
 
 	// Create Image
 	QImage image;
