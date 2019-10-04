@@ -65,24 +65,26 @@ protected:
 
 		int imageWidth = rect.width() * zoomFactor;
 		int imageHeight = imageWidth * (9.0 / 16.0);
-		int imageLeft = (rect.width() - imageWidth) / 2 + rect.left();
-		int imageTop = (rect.height() - imageHeight) / 2 + rect.top();
+		int imageLeft = (rect.width() - imageWidth) / 2.0 + rect.left();
+		int imageTop = heightBlock;//(rect.height() - imageHeight) / 2.0 + rect.top();
 
+		QRect imageRect(imageLeft, imageTop + heightBlock, imageWidth, imageHeight);
 		// Set font
-		QFont font("Verdana", 12);
+		QFont font("Verdana", 8);
 		painter->setFont(font);
 		if (opt.state & QStyle::State_Selected)
 		{
 			font.setBold(true);
-			painter->drawText(QRect(rect.left(), rect.top(), rect.width(), heightBlock),
-				Qt::AlignCenter, headline);
+			QRect rectTopText(rect.left(), rect.top(), rect.width(), heightBlock);
+			rectTopText.moveBottom(imageRect.top());
+			painter->drawText(rectTopText, Qt::AlignCenter | Qt::TextWordWrap, headline);
 			font.setBold(false);
 			int bottomTextTop = imageTop + heightBlock + imageHeight;
 			painter->drawText(QRect(rect.left(), bottomTextTop, rect.width(), heightBlock),
-				Qt::AlignCenter, subheadline);
+				Qt::AlignCenter | Qt::TextWordWrap, subheadline);
 		}
 
-		painter->drawImage(QRect(imageLeft, imageTop + heightBlock, imageWidth, imageHeight), image);
+		painter->drawImage(imageRect, image);
 		
 	}
 
