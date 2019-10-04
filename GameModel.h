@@ -27,6 +27,6 @@ protected:
 private:
 
 	std::vector<Game>* gameList;
-	int gameCount;
+	size_t gameCount;
 };
 

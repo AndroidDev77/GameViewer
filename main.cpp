@@ -4,8 +4,12 @@
 int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
-
-	GameViewer* gameViewer = new GameViewer();
+	std::string testUrl = "";
+	if (argc > 1)
+	{
+		testUrl = argv[1];
+	}
+	GameViewer* gameViewer = new GameViewer(testUrl);
 	
 	return app.exec();
 }

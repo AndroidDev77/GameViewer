@@ -14,7 +14,9 @@
 #include <QtCore/QStringListModel>  
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QStyledItemDelegate>
+#include <QtWidgets/QTextBrowser>
 #include <Qpainter>
+#include <QtWidgets/qlabel.h>
 
 
 #include <json/json.h>
@@ -23,18 +25,35 @@
 #include "Game.h"
 #include "GameModel.h"
 
+class GameViewDelegate;
+
 class GameViewer
 {
 public:
 
-	GameViewer();
+	GameViewer(std::string testUrl);
 	~GameViewer();
 	int loadGames(std::string url);
 	void setupUI();
+	void updateTextView(QString text);
+	void updateDetailImage(QImage* image);
+	
 
 private:
 	GameModel* model;
 	WebDataReader* reader;
+	QMainWindow* mainWindow;
+	QListView* listView;
+	QVBoxLayout* layout;
+	QWidget* centralWidget;
+	QHBoxLayout* hLayout;
+	QTextBrowser* textBrowser;
+	QWidget* bottomWidget;
+	QLabel* bottomImageWidget;
+
+	QItemSelectionModel* selectionModel;
+
+	GameViewDelegate* gameViewDelegate;
 	
 	// Games are stored in simple vector 
 	// Most amount of games in a is ~30
@@ -42,3 +61,16 @@ private:
 	struct tm  timeinfo;
 	
 };
+
+class GameViewDelegate : public QStyledItemDelegate
+{
+
+public:
+	GameViewer* gameViewerHandle;
+
+protected:
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const;
+
+};
+

@@ -48,11 +48,12 @@ QVariant GameModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 
 	if (index.row() >= gameList->size() || index.row() < 0)
-		return QVariant();
+	{
+		return QVariant(); 
+	}
 
 	if (role == Qt::ForegroundRole)
-	{
-		
+	{	
 		return *(gameList->at(index.row()).image);
 	}
 	if (role == Qt::DisplayRole)
@@ -63,6 +64,11 @@ QVariant GameModel::data(const QModelIndex& index, int role) const
 	if (role == Qt::ToolTipRole)
 	{
 		return QVariant(gameList->at(index.row()).subheadline.c_str());
+	}
+
+	if (role == Qt::UserRole)
+	{
+		return QVariant(gameList->at(index.row()).blurb.c_str());
 	}
 
 	return QVariant();

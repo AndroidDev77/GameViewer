@@ -1,6 +1,6 @@
 Gameviewer Install - 32-bit
 
-libcurl - https://curl.haxx.se/download.html
+libcurl with Openssl - https://curl.haxx.se/download.html
 	1. cd curl-7.66.0/projects
 	2. build-openssl.bat
 	
@@ -24,3 +24,8 @@ jsoncpp - Pro: Simple JSON library. Small and easy.
 
 Qt - Pro: Wide Support, detailed documentation. Easy to use but has advanced features.
 	 Con: It is a little heavy. Commercial License.
+
+	 
+Use:
+1. GameViewer.exe  - To Pull todays games
+2. GameViewer.exe http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1 for custome date

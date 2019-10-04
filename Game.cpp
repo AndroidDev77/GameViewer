@@ -63,7 +63,10 @@ Game::Game(Json::Value gameValue)
 
 Game::~Game()
 {
-
+	/*if (image != nullptr)
+	{
+		delete image;
+	}*/
 }
 
 GameEvent_t Game::getWinner()
