@@ -18,8 +18,9 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 	opt.text = "";
 	QStyle* style = opt.widget ? opt.widget->style() : QApplication::style();
 	style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
-
+	
 	QRect rect = opt.rect;
+	
 	QPalette::ColorGroup cg = opt.state & QStyle::State_Enabled ? QPalette::Normal : QPalette::Disabled;
 	if (cg == QPalette::Normal && !(opt.state & QStyle::State_Active))
 		cg = QPalette::Inactive;
@@ -29,7 +30,7 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 	// Disable Text When not Selected
 	if (opt.state & QStyle::State_Selected)
 	{
-		painter->setPen(opt.palette.color(cg, QPalette::HighlightedText));
+		painter->setPen(opt.palette.color(cg, QPalette::BrightText));
 	}
 	else
 	{
@@ -61,7 +62,7 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 		painter->drawText(QRect(rect.left(), bottomTextTop, rect.width(), heightBlock),
 			Qt::AlignCenter | Qt::TextWordWrap, subheadline);
 	}
-
+	image.
 	painter->drawImage(imageRect, image);
 
 	// Fill out Details view
@@ -85,14 +86,16 @@ QSize GameViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
 
 GameViewer::GameViewer(std::string testUrl)
 {
-	reader = new WebDataReader();
+	//TODO: combine readers and use curl_multi
+	reader[0] = new WebDataReader();
+	reader[1] = new WebDataReader();
 	gameModel[0] = new GameModel();
 	gameModel[1] = new GameModel();
 	std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
 	//std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
 
-	
-	int gamesCount = 0;
+	std::future<int> gamesCount1;
+	std::future<int> gamesCount2;
 	int secDay = 0;
 	// Use todays date if testUrl is empty
 	if (testUrl.empty())
@@ -100,44 +103,44 @@ GameViewer::GameViewer(std::string testUrl)
 		//Get Todays date
 		time_t     now = time(0);
 		// Load Last Day that has games
-		while (gamesCount <= 0)
-		{
-			// Substract day if no games today
-			now -= secDay;
-			char       dateChar[11];
-			gmtime_s(&timeinfo, &now);
 
-			// Replace YYYY-MM-DD with todays date
-			strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
-			size_t index = 0;
-			std::string currentUrl = url;
-			index = currentUrl.find("YYYY-MM-DD", index);
+		// Substract day if no games today
+		now -= secDay;
+		char       dateChar[11];
+		gmtime_s(&timeinfo, &now);
 
-			currentUrl.replace(index, 10, dateChar);
-			gamesCount = loadGames(currentUrl,gameModel[0], &gameList[0]);
-			secDay = 86400;
+		// Replace YYYY-MM-DD with todays date
+		strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
+		size_t index = 0;
+		std::string currentUrl = url;
+		index = currentUrl.find("YYYY-MM-DD", index);
 
-			time_t dayBefore = now - secDay;
+		currentUrl.replace(index, 10, dateChar);
 
-			gmtime_s(&timeinfo, &dayBefore);
+		// Load Games Async
+		gamesCount1 = std::async(std::launch::async,loadGames,reader[0],currentUrl,gameModel[0], &gameList[0]);
+		secDay = 86400;
 
-			// Replace YYYY-MM-DD with the day before date
-			strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
-			index = 0;
-			currentUrl = url;
-			index = currentUrl.find("YYYY-MM-DD", index);
+		time_t dayBefore = now - secDay;
 
-			currentUrl.replace(index, 10, dateChar);
-			gamesCount = loadGames(currentUrl,gameModel[1], &gameList[1]);
+		gmtime_s(&timeinfo, &dayBefore);
 
+		// Replace YYYY-MM-DD with the day before date
+		strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
+		index = 0;
+		currentUrl = url;
+		index = currentUrl.find("YYYY-MM-DD", index);
 
-		}
+		currentUrl.replace(index, 10, dateChar);
+		gamesCount2 = std::async(std::launch::async, loadGames,reader[1],currentUrl,gameModel[1], &gameList[1]);
+
 	}
 	else 
 	{
+		// Testing
 		std::string testUrl2("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1");
-		gamesCount = loadGames(testUrl,gameModel[0], &gameList[0]);
-		gamesCount = loadGames(testUrl2,gameModel[1], &gameList[1]);
+		gamesCount1 = std::async(std::launch::async, loadGames, reader[0], testUrl, gameModel[0], &gameList[0]);
+		gamesCount2 = std::async(std::launch::async, loadGames, reader[1], testUrl2, gameModel[1], &gameList[1]);
 	}
 	setupUI();
 	
@@ -145,14 +148,14 @@ GameViewer::GameViewer(std::string testUrl)
 	QGamepadManager* gamepad_manager = QGamepadManager::instance();
 	QList<int> gamepads;
 	int i = 0;
-	while (i < 10000)
+	while (i < 10)
 	{
-		QApplication::processEvents();
+		//QApplication::processEvents();
 		qInfo() << "get connected gamepads iteration : " << i;
 		gamepads = gamepad_manager->connectedGamepads();
 		if (!gamepads.isEmpty())
 		{
-			i = 10000;
+			i = 10;
 		}
 		i++;
 	}
@@ -186,7 +189,8 @@ GameViewer::GameViewer(std::string testUrl)
 
 GameViewer::~GameViewer()
 {
-	delete reader;
+	delete reader[0];
+	delete reader[1];
 	delete gameModel[0];
 	delete gameModel[1];
 }
@@ -217,20 +221,25 @@ void GameViewer::setupUI()
 		listView[0]->setAutoFillBackground(false);  /* make backgrounds transparent */
 		listView[0]->viewport()->setAutoFillBackground(false);
 		listView[0]->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		
+		listView[0]->setLayoutMode(QListView::LayoutMode::Batched);
+		listView[0]->setBatchSize(5);
+		listView[0]->setStyleSheet("QListView::item:selected{background: rgb(0,0,0,0);} QListView{outline:0;}");
+		listView[0]->setFrameStyle(QFrame::NoFrame);
 		// Make it Horizontal
 		listView[0]->setFlow(QListView::LeftToRight);
 
 		// Create Second ListView
 		listView[1] = new QListView();
-		//gameViewDelegate = new GameViewDelegate();
-		//gameViewDelegate->gameViewerHandle = this;
 
 		listView[1]->setItemDelegate(gameViewDelegate);
 		listView[1]->setModel(gameModel[1]);
 		listView[1]->setAutoFillBackground(false);  /* make backgrounds transparent */
 		listView[1]->viewport()->setAutoFillBackground(false);
 		listView[1]->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		listView[1]->setLayoutMode(QListView::LayoutMode::Batched);
+		listView[1]->setBatchSize(5);
+		listView[1]->setStyleSheet("QListView::item:selected{background: rgb(0,0,0,0);} QListView{outline:0;}");
+		listView[1]->setFrameStyle(QFrame::NoFrame);
 
 		// Make it Horizontal
 		listView[1]->setFlow(QListView::LeftToRight);
@@ -266,7 +275,6 @@ void GameViewer::setupUI()
 
 		// Set properties for selection Model
 		selectionModel = listView[0]->selectionModel();
-
 		this->show();
 	}
 	catch (const std::exception& e)
@@ -275,17 +283,17 @@ void GameViewer::setupUI()
 	}
 }
 
-int GameViewer::loadGames(std::string url, GameModel* gameModel,std::vector<Game> *gameList)
+int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* gameModel,std::vector<Game> *gameList)
 {
 	try{
 		Json::Value root;
 		reader->ReadJSONFromURL(url, &root);
 
-		std::string copyright = root["copyright"].asString();
+		//std::string copyright = root["copyright"].asString();
 		int totalGames        = root["totalGames"].asInt();
 
-		qInfo() << copyright.c_str() ;
-		qInfo() <<"Total Games: "<< totalGames;
+		//qInfo() << copyright.c_str() ;
+		//qInfo() <<"Total Games: "<< totalGames;
 
 		Json::Value games = root["dates"][0]["games"];
 	

@@ -15,6 +15,7 @@ public:
 
 private:
 	CURL* curl;
+	CURLM* multi_curl;
 	CURLcode res;
 
 };

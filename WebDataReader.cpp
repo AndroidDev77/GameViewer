@@ -41,6 +41,9 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 {
 
 	std::string readBuffer;
+	// Not Thread safe
+	curl_global_init(CURL_GLOBAL_ALL);
+	
 	curl = curl_easy_init();
 	if (curl) {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -70,6 +73,7 @@ QImage* WebDataReader::ReadImageFromURL(std::string url)
 	chunk.memory = (char*)malloc(1);
 	chunk.size = 0;
 
+	// Not Thread safe
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	// init curl 

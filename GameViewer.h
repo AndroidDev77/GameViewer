@@ -25,6 +25,7 @@
 
 #include <json/json.h>
 #include <time.h>
+#include <future>
 #include "WebDataReader.h"
 #include "Game.h"
 #include "GameModel.h"
@@ -37,7 +38,7 @@ public:
 
 	GameViewer(std::string testUrl);
 	~GameViewer();
-	int loadGames(std::string url, GameModel* gameModel, std::vector<Game>* gameList);
+	static int loadGames(WebDataReader* reader, std::string url, GameModel* gameModel, std::vector<Game>* gameList);
 	void setupUI();
 	void updateTextView(QString text);
 	void updateDetailImage(QImage* image);
@@ -47,7 +48,7 @@ public:
 private:
 	GameModel*           gameModel[2];
 	GameViewDelegate*    gameViewDelegate;
-	WebDataReader*       reader;
+	WebDataReader*       reader[2];
 
 	QListView*           listView[2];
 	QVBoxLayout*         layout;
