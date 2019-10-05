@@ -33,35 +33,37 @@ public:
 
 	GameViewer(std::string testUrl);
 	~GameViewer();
-	int loadGames(std::string url);
+	int loadGames(std::string url, GameModel* gameModel, std::vector<Game>* gameList);
 	void setupUI();
 	void updateTextView(QString text);
 	void updateDetailImage(QImage* image);
-	
+
 
 private:
-	GameModel* model;
-	WebDataReader* reader;
-	QMainWindow* mainWindow;
-	QListView* listView;
-	QVBoxLayout* layout;
-	QWidget* centralWidget;
-	QHBoxLayout* hLayout;
-	QTextBrowser* textBrowser;
-	QWidget* bottomWidget;
-	QLabel* bottomImageWidget;
+	GameModel*           gameModel[2];
+	GameViewDelegate*    gameViewDelegate;
+	WebDataReader*       reader;
 
+	QMainWindow*         mainWindow;
+	QListView*           listView[2];
+	QVBoxLayout*         layout;
+	QHBoxLayout*         hLayout;
+	QTextBrowser*        textBrowser;
+	QWidget*             centralWidget;
+	QWidget*             bottomWidget;
+	QLabel*              bottomImageWidget;
 	QItemSelectionModel* selectionModel;
 
-	GameViewDelegate* gameViewDelegate;
 	
+
 	// Games are stored in simple vector 
 	// Most amount of games in a is ~30
-	std::vector<Game> gameList;
-	struct tm  timeinfo;
-	
+	std::vector<Game> gameList[2];
+	struct tm         timeinfo;
+
 };
 
+// Class to customize how Game Objects are drawn
 class GameViewDelegate : public QStyledItemDelegate
 {
 

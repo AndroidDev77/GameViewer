@@ -87,13 +87,14 @@ QSize GameViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
 GameViewer::GameViewer(std::string testUrl)
 {
 	reader = new WebDataReader();
-	model = new GameModel();
+	gameModel[0] = new GameModel();
+	gameModel[1] = new GameModel();
 	std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
 	//std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
 
 	int gamesCount = 0;
 	int secDay = 0;
-
+	// Use todays date if testUrl is empty
 	if (testUrl.empty())
 	{
 		//Get Todays date
@@ -113,13 +114,30 @@ GameViewer::GameViewer(std::string testUrl)
 			index = currentUrl.find("YYYY-MM-DD", index);
 
 			currentUrl.replace(index, 10, dateChar);
-			gamesCount = loadGames(currentUrl);
+			gamesCount = loadGames(currentUrl,gameModel[0], &gameList[0]);
 			secDay = 86400;
+
+			time_t dayBefore = now - secDay;
+
+			gmtime_s(&timeinfo, &dayBefore);
+
+			// Replace YYYY-MM-DD with the day before date
+			strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
+			index = 0;
+			currentUrl = url;
+			index = currentUrl.find("YYYY-MM-DD", index);
+
+			currentUrl.replace(index, 10, dateChar);
+			gamesCount = loadGames(currentUrl,gameModel[1], &gameList[1]);
+
+
 		}
 	}
 	else 
 	{
-		gamesCount = loadGames(testUrl);
+		std::string testUrl2("http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1");
+		gamesCount = loadGames(testUrl,gameModel[0], &gameList[0]);
+		gamesCount = loadGames(testUrl2,gameModel[1], &gameList[1]);
 	}
 	setupUI();
 	
@@ -129,7 +147,8 @@ GameViewer::GameViewer(std::string testUrl)
 GameViewer::~GameViewer()
 {
 	delete reader;
-	delete model;
+	delete gameModel[0];
+	delete gameModel[1];
 }
 
 void GameViewer::setupUI()
@@ -147,19 +166,34 @@ void GameViewer::setupUI()
 		palette.setBrush(QPalette::Background, bkgnd);
 		mainWindow->setPalette(palette);
 
-		// Create ListView
-		listView = new QListView();
+		// Create Custom Item Painter
 		gameViewDelegate = new GameViewDelegate();
 		gameViewDelegate->gameViewerHandle = this;
 
-		listView->setItemDelegate(gameViewDelegate);
-		listView->setModel(model);
-		listView->setAutoFillBackground(false);  /* make backgrounds transparent */
-		listView->viewport()->setAutoFillBackground(false);
-		listView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		// Create First ListView
+		listView[0] = new QListView();
+		listView[0]->setItemDelegate(gameViewDelegate);
+		listView[0]->setModel(gameModel[0]);
+		listView[0]->setAutoFillBackground(false);  /* make backgrounds transparent */
+		listView[0]->viewport()->setAutoFillBackground(false);
+		listView[0]->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 		// Make it Horizontal
-		listView->setFlow(QListView::LeftToRight);
+		listView[0]->setFlow(QListView::LeftToRight);
+
+		// Create Second ListView
+		listView[1] = new QListView();
+		//gameViewDelegate = new GameViewDelegate();
+		//gameViewDelegate->gameViewerHandle = this;
+
+		listView[1]->setItemDelegate(gameViewDelegate);
+		listView[1]->setModel(gameModel[1]);
+		listView[1]->setAutoFillBackground(false);  /* make backgrounds transparent */
+		listView[1]->viewport()->setAutoFillBackground(false);
+		listView[1]->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+		// Make it Horizontal
+		listView[1]->setFlow(QListView::LeftToRight);
 
 		bottomWidget = new  QWidget();
 		bottomWidget->resize(1920, 300);
@@ -182,7 +216,8 @@ void GameViewer::setupUI()
 		bottomWidget->setLayout(hLayout);
 
 		layout = new QVBoxLayout();
-		layout->addWidget(listView);
+		layout->addWidget(listView[0]);
+		layout->addWidget(listView[1]);
 		layout->addWidget(bottomWidget);
 
 		centralWidget = new QWidget(mainWindow);
@@ -190,7 +225,7 @@ void GameViewer::setupUI()
 		mainWindow->setCentralWidget(centralWidget);
 
 		// Set properties for selection Model
-		selectionModel = listView->selectionModel();
+		selectionModel = listView[0]->selectionModel();
 
 		mainWindow->show();
 	}
@@ -200,7 +235,7 @@ void GameViewer::setupUI()
 	}
 }
 
-int GameViewer::loadGames(std::string url)
+int GameViewer::loadGames(std::string url, GameModel* gameModel,std::vector<Game> *gameList)
 {
 	try{
 		Json::Value root;
@@ -214,7 +249,7 @@ int GameViewer::loadGames(std::string url)
 
 		Json::Value games = root["dates"][0]["games"];
 	
-		gameList.clear();
+		gameList->clear();
 		Json::Value::iterator it;
 		for (it = games.begin(); it != games.end(); ++it)
 		{
@@ -230,9 +265,9 @@ int GameViewer::loadGames(std::string url)
 			{
 				game.image = new QImage("genericLogo.jpg");
 			}
-			gameList.push_back(game);
+			gameList->push_back(game);
 		}
-		model->setList(&gameList);
+		gameModel->setList(gameList);
 
 		return totalGames;
 	}
