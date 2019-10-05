@@ -16,7 +16,11 @@
 #include <QtWidgets/QStyledItemDelegate>
 #include <QtWidgets/QTextBrowser>
 #include <Qpainter>
+#include <QKeyEvent>
+#include <QWindow>
 #include <QtWidgets/qlabel.h>
+#include <QtGamepad/QGamepad>
+#include <QtCore/QDebug>
 
 
 #include <json/json.h>
@@ -27,7 +31,7 @@
 
 class GameViewDelegate;
 
-class GameViewer
+class GameViewer : QMainWindow
 {
 public:
 
@@ -37,6 +41,7 @@ public:
 	void setupUI();
 	void updateTextView(QString text);
 	void updateDetailImage(QImage* image);
+	void keyPressEvent(QKeyEvent* event);
 
 
 private:
@@ -44,7 +49,6 @@ private:
 	GameViewDelegate*    gameViewDelegate;
 	WebDataReader*       reader;
 
-	QMainWindow*         mainWindow;
 	QListView*           listView[2];
 	QVBoxLayout*         layout;
 	QHBoxLayout*         hLayout;
@@ -53,6 +57,8 @@ private:
 	QWidget*             bottomWidget;
 	QLabel*              bottomImageWidget;
 	QItemSelectionModel* selectionModel;
+
+	QGamepad* gamepad;
 
 	
 

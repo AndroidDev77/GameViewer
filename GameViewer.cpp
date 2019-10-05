@@ -13,7 +13,7 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
 	QString headline = index.model()->data(index.model()->index(index.row(), 0), Qt::DisplayRole).toString(); // Headline
 	QString subheadline = index.model()->data(index.model()->index(index.row(), 0), Qt::ToolTipRole).toString(); // Subheadline
-	QImage image = index.model()->data(index.model()->index(index.row(), 0), Qt::ForegroundRole).value<QImage>();
+	QImage  image = index.model()->data(index.model()->index(index.row(), 0), Qt::ForegroundRole).value<QImage>(); // Image
 
 	opt.text = "";
 	QStyle* style = opt.widget ? opt.widget->style() : QApplication::style();
@@ -44,7 +44,7 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 	int imageWidth = rect.width() * zoomFactor;
 	int imageHeight = imageWidth * (9.0f / 16.0f);
 	int imageLeft = (rect.width() - imageWidth) / 2.0f + rect.left();
-	int imageTop = heightBlock;//(rect.height() - imageHeight) / 2.0 + rect.top();
+	int imageTop = heightBlock;
 
 	QRect imageRect(imageLeft, imageTop + heightBlock, imageWidth, imageHeight);
 	// Set font
@@ -72,7 +72,6 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 		gameViewerHandle->updateTextView(blurb);
 		gameViewerHandle->updateDetailImage(&image);
 	}
-	// Send Signal to QViewer
 
 }
 
@@ -92,6 +91,7 @@ GameViewer::GameViewer(std::string testUrl)
 	std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
 	//std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
 
+	
 	int gamesCount = 0;
 	int secDay = 0;
 	// Use todays date if testUrl is empty
@@ -141,6 +141,46 @@ GameViewer::GameViewer(std::string testUrl)
 	}
 	setupUI();
 	
+	// Setup gamepad
+	QGamepadManager* gamepad_manager = QGamepadManager::instance();
+	QList<int> gamepads;
+	int i = 0;
+	while (i < 10000)
+	{
+		QApplication::processEvents();
+		qInfo() << "get connected gamepads iteration : " << i;
+		gamepads = gamepad_manager->connectedGamepads();
+		if (!gamepads.isEmpty())
+		{
+			i = 10000;
+		}
+		i++;
+	}
+
+	//auto gamepads = QGamepadManager::instance()->connectedGamepads();
+	if (gamepads.isEmpty()) {
+		qInfo() << "No Gamepads Detected";
+		return;
+	}
+	else {
+
+		gamepad = new QGamepad(gamepads[0], this);
+
+		connect(gamepad, &QGamepad::buttonUpChanged, this, [](bool value) {
+			if (value == true)
+			{
+				QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, Qt::Key_Up, Qt::NoModifier, "", false, 1);
+				QCoreApplication::postEvent(QApplication::focusWidget(), event);
+			}
+			});
+		connect(gamepad, &QGamepad::buttonDownChanged, this, [](bool value) {
+			if (value == true)
+			{
+				QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, Qt::Key_Down, Qt::NoModifier, "", false, 1);
+				QCoreApplication::postEvent(QApplication::focusWidget(), event);
+			}
+			});
+	}
 
 }
 
@@ -155,16 +195,16 @@ void GameViewer::setupUI()
 {
 	// Set UI Items
 	try {
-		mainWindow = new QMainWindow();
-		mainWindow->setWindowTitle(QString("Today's MLB games"));
+		//mainWindow = new QMainWindow();
+		this->setWindowTitle(QString("Today's MLB games"));
 
 		// rework to get screensize
-		mainWindow->resize(1920, 1080);
+		this->resize(1920, 1080);
 		QPixmap bkgnd("mlbBackground.jpg");
-		bkgnd = bkgnd.scaled(mainWindow->size(), Qt::IgnoreAspectRatio);
+		bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
 		QPalette palette;
 		palette.setBrush(QPalette::Background, bkgnd);
-		mainWindow->setPalette(palette);
+		this->setPalette(palette);
 
 		// Create Custom Item Painter
 		gameViewDelegate = new GameViewDelegate();
@@ -177,7 +217,7 @@ void GameViewer::setupUI()
 		listView[0]->setAutoFillBackground(false);  /* make backgrounds transparent */
 		listView[0]->viewport()->setAutoFillBackground(false);
 		listView[0]->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
+		
 		// Make it Horizontal
 		listView[0]->setFlow(QListView::LeftToRight);
 
@@ -220,14 +260,14 @@ void GameViewer::setupUI()
 		layout->addWidget(listView[1]);
 		layout->addWidget(bottomWidget);
 
-		centralWidget = new QWidget(mainWindow);
+		centralWidget = new QWidget(this);
 		centralWidget->setLayout(layout);
-		mainWindow->setCentralWidget(centralWidget);
+		this->setCentralWidget(centralWidget);
 
 		// Set properties for selection Model
 		selectionModel = listView[0]->selectionModel();
 
-		mainWindow->show();
+		this->show();
 	}
 	catch (const std::exception& e)
 	{
@@ -244,8 +284,8 @@ int GameViewer::loadGames(std::string url, GameModel* gameModel,std::vector<Game
 		std::string copyright = root["copyright"].asString();
 		int totalGames        = root["totalGames"].asInt();
 
-		std::cout << copyright << std::endl;
-		std::cout <<"Total Games: "<< totalGames << std::endl;
+		qInfo() << copyright.c_str() ;
+		qInfo() <<"Total Games: "<< totalGames;
 
 		Json::Value games = root["dates"][0]["games"];
 	
@@ -290,3 +330,19 @@ void GameViewer::updateDetailImage(QImage* image)
 {
 	bottomImageWidget->setPixmap(QPixmap::fromImage(*image));
 }
+
+// Navigates between Lists views
+void GameViewer::keyPressEvent(QKeyEvent* event)
+{
+	if (event->key()== Qt::Key_Up)
+	{
+		listView[1]->clearSelection();
+		listView[0]->setFocus();
+	}
+	else if (event->key() == Qt::Key_Down)
+	{
+		listView[0]->clearSelection();
+		listView[1]->setFocus();
+	}
+}
+

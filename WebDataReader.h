@@ -3,6 +3,7 @@
 #include <QPixmap>
 #include <json/json.h>
 #include <curl/curl.h>
+#include <QtCore/QDebug>
 
 
 class WebDataReader

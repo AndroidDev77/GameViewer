@@ -20,7 +20,7 @@ static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb
 	mem->memory = (char*)realloc(mem->memory, mem->size + realsize + 1);
 	if (mem->memory == NULL) {
 		/* out of memory! */
-		printf("not enough memory (realloc returned NULL)\n");
+		qInfo() <<"not enough memory (realloc returned NULL)\n";
 		return 0;
 	}
 
@@ -55,7 +55,7 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 	const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
 	if (!reader->parse(readBuffer.c_str(), readBuffer.c_str() + readBuffer.length(), root,
 		&err)) {
-		std::cout << "error" << std::endl;
+		qInfo() << "Error Reading Image from " << url.c_str();
 		return EXIT_FAILURE;
 
 	}
