@@ -1,16 +1,55 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// file:	WebDataReader.cpp
+//
+// summary:	Implements the web data reader class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include "WebDataReader.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	A memory structure. </summary>
+///
+/// <remarks>	Chris, 10/6/2019. </remarks>
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct MemoryStruct {
+	/// <summary>	The memory poiter. </summary>
 	char* memory;
+	/// <summary>	The size. </summary>
 	size_t size;
 };
 
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Function callback, that writes data to userp from contents. </summary>
+///
+/// <remarks>	Chris, 10/6/2019. </remarks>
+///
+/// <param name="contents">	[in,out] Memory from curl call. </param>
+/// <param name="size">	   	The size. </param>
+/// <param name="nmemb">   	Number of memory address. </param>
+/// <param name="userp">   	[in,out] User provided memory address. </param>
+///
+/// <returns>	A size_t. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static size_t WriteStringCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
 	((std::string*)userp)->append((char*)contents, size * nmemb);
 	return size * nmemb;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Writes an image memory callback. </summary>
+///
+/// <remarks>	Chris, 10/6/2019. </remarks>
+///
+/// <param name="contents">	[in,out] Memory from curl call. </param>
+/// <param name="size">	   	The size. </param>
+/// <param name="nmemb">   	Number of memory address. </param>
+/// <param name="userp">   	[in,out] User provided memory address. </param>
+///
+/// <returns>	A size_t. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb,
 	void* userp) {
@@ -31,11 +70,28 @@ static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb
 	return realsize;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Default constructor. </summary>
+///
+/// <remarks>	Chris, 10/6/2019. </remarks>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 WebDataReader::WebDataReader()
 {
 	curl = curl_easy_init();
 	res = CURLE_OK;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Reads JSON from URL. </summary>
+///
+/// <remarks>	Chris, 10/6/2019. </remarks>
+///
+/// <param name="url"> 	URL of the resource. </param>
+/// <param name="root">	[in,out] If non-null, the root. </param>
+///
+/// <returns>	The JSON from URL. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 {
@@ -47,7 +103,7 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 	curl = curl_easy_init();
 	if (curl) {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteStringCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 		res = curl_easy_perform(curl);
 		curl_easy_cleanup(curl);
@@ -62,14 +118,24 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 		return EXIT_FAILURE;
 
 	}
-	return 0;
+	return res;
 }
 
-QImage* WebDataReader::ReadImageFromURL(std::string url)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Reads image from URL. </summary>
+///
+/// <remarks>	Chris, 10/6/2019. </remarks>
+///
+/// <param name="url">	URL of the resource. </param>
+///  <param name="image">	QImage that's allocated. </param>
+///
+/// <returns>	curl response code </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int WebDataReader::ReadImageFromURL(std::string url, QImage* image)
 {
 	MemoryStruct chunk;
 
-	// Change to c++ later
 	chunk.memory = (char*)malloc(1);
 	chunk.size = 0;
 
@@ -92,13 +158,13 @@ QImage* WebDataReader::ReadImageFromURL(std::string url)
 
 	// perform action
 	res = curl_easy_perform(curl);
-
-	// Create Image
-	QImage* image = new QImage();
-	image->loadFromData((const uchar*)chunk.memory, chunk.size, "JPG");
-
+	if (res == CURLE_OK)
+	{
+		// Create Image
+		image->loadFromData((const uchar*)chunk.memory, chunk.size, "JPG");
+	}
 	// Free Memory
 	free(chunk.memory);
 
-	return image;
+	return res;
 }

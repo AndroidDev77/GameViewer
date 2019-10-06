@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameViewer", "GameViewer.vcxproj", "{786C2A59-2462-4278-A1F9-A253F0EBA173}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameViewerTest", "..\GameViewerTest\GameViewerTest.vcxproj", "{6D01ED14-8028-4FDE-921A-61F6F41980CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{786C2A59-2462-4278-A1F9-A253F0EBA173}.Release|x64.Build.0 = Release|x64
 		{786C2A59-2462-4278-A1F9-A253F0EBA173}.Release|x86.ActiveCfg = Release|Win32
 		{786C2A59-2462-4278-A1F9-A253F0EBA173}.Release|x86.Build.0 = Release|Win32
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Debug|x64.ActiveCfg = Debug|x64
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Debug|x64.Build.0 = Debug|x64
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Debug|x86.ActiveCfg = Debug|Win32
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Debug|x86.Build.0 = Debug|Win32
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Release|x64.ActiveCfg = Release|x64
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Release|x64.Build.0 = Release|x64
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Release|x86.ActiveCfg = Release|Win32
+		{6D01ED14-8028-4FDE-921A-61F6F41980CF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

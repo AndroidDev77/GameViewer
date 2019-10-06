@@ -181,7 +181,7 @@ GameViewer::GameViewer(std::string testUrl)
 	int dateIndex = url[0].find("date=");
 	date[0] = url[0].substr(dateIndex + 5, 10);
 	date[1] = url[1].substr(dateIndex + 5, 10);
-	
+
 	setupUI();
 	
 	// Setup gamepad
