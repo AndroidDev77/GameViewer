@@ -1,8 +1,0 @@
-#include <string>
-
-//namespace GameStructs
-//{
-
-
-//}
-
