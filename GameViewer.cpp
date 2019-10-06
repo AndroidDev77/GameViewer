@@ -172,7 +172,7 @@ GameViewer::GameViewer(std::string testUrl)
 	{
 		// Testing
 		url[0] = testUrl;
-		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1";
+		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2019-12-09&sportId=1";
 		gamesCount1 = std::async(std::launch::async, loadGames, reader[0], url[0], gameModel[0], &gameList[0]);
 		gamesCount2 = std::async(std::launch::async, loadGames, reader[1], url[1], gameModel[1], &gameList[1]);
 	}
@@ -181,7 +181,28 @@ GameViewer::GameViewer(std::string testUrl)
 	int dateIndex = url[0].find("date=");
 	date[0] = url[0].substr(dateIndex + 5, 10);
 	date[1] = url[1].substr(dateIndex + 5, 10);
-	
+
+	// if No games were loaded display that
+	// This is actually a blocking call until loadgames returns
+	// We can move this later
+	try
+	{
+		int gameCount = gamesCount1.get();
+		if (gameCount == 0)
+		{
+			date[0] += " - No Games On This Date";
+		}
+		gameCount = gamesCount2.get();
+		if (gameCount == 0)
+		{
+			date[1] += " - No Games On This Date";
+		}
+	}
+	catch (std::exception& ex)
+	{
+		qInfo() << ex.what();
+	}
+
 	setupUI();
 	
 	// Setup gamepad
@@ -383,7 +404,7 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 		res = reader->ReadJSONFromURL(url, &root);
 		if (res == CURLE_OK)
 		{
-			int totalGames = root["totalGames"].asInt();
+			totalGames = root["totalGames"].asInt();
 
 			Json::Value games = root["dates"][0]["games"];
 
