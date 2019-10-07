@@ -337,15 +337,15 @@ void GameViewer::setupUI()
 		bottomWidget->setAutoFillBackground(false);  /* make backgrounds transparent */
 		//scrollArea->viewport()->setAutoFillBackground(false);
 
-		hLayout = new QHBoxLayout();
+		hLayout = new QHBoxLayout(this);
 
-		textBrowser = new QTextBrowser(centralWidget); /* Text panel to view game details */
+		textBrowser = new QTextBrowser(bottomWidget); /* Text panel to view game details */
 		textBrowser->viewport()->setAutoFillBackground(false);
 		QFont font("Verdana", 14);
 		textBrowser->setCurrentFont(font);
 		textBrowser->setTextColor(QColor(Qt::gray));
 
-		bottomImageWidget = new QLabel(centralWidget);
+		bottomImageWidget = new QLabel(bottomWidget);
 		bottomImageWidget->setScaledContents(true);
 
 		// Set Size policy so text is 66% of screen and image is 33%
