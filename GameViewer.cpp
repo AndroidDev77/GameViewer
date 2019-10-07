@@ -65,22 +65,23 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 	{
 		font.setBold(true);
 		QRect rectTopText(rect.left(), rect.top(), rect.width(), heightBlock);
-		rectTopText.moveBottom(imageRect.top()-5);
+		rectTopText.moveBottom(imageRect.top() - 5);
 		painter->drawText(rectTopText, Qt::AlignCenter | Qt::TextWordWrap, headline);
 		font.setBold(false);
 		int bottomTextTop = imageTop + heightBlock + imageHeight;
 		painter->drawText(QRect(rect.left(), bottomTextTop, rect.width(), heightBlock),
 			Qt::AlignCenter | Qt::TextWordWrap, subheadline);
-	}
-	painter->drawImage(imageRect, image);
 
-	// Fill out Details view
-	QString blurb = index.model()->data(index.model()->index(index.row(), 0), Qt::UserRole).toString(); // Blurb
+		painter->drawImage(imageRect, image);
 
-	if (gameViewerHandle != nullptr)
-	{
-		gameViewerHandle->updateTextView(blurb);
-		gameViewerHandle->updateDetailImage(&image);
+		// Fill out Details view
+		QString blurb = index.model()->data(index.model()->index(index.row(), 0), Qt::UserRole).toString(); // Blurb
+
+		if (gameViewerHandle != nullptr)
+		{
+			gameViewerHandle->updateTextView(blurb);
+			gameViewerHandle->updateDetailImage(&image);
+		}
 	}
 
 }
@@ -172,7 +173,7 @@ GameViewer::GameViewer(std::string testUrl)
 	{
 		// Testing
 		url[0] = testUrl;
-		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2019-12-09&sportId=1";
+		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1";
 		gamesCount1 = std::async(std::launch::async, loadGames, reader[0], url[0], gameModel[0], &gameList[0]);
 		gamesCount2 = std::async(std::launch::async, loadGames, reader[1], url[1], gameModel[1], &gameList[1]);
 	}

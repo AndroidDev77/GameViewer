@@ -13,7 +13,22 @@ jsoncpp - https://github.com/open-source-parsers/jsoncpp
 
 Qt 5.12.2 - MSVC2017
 
+includes:
+F:\Qt\5.12.2\msvc2017\include
+F:\Qt\5.12.2\msvc2017\include\QtGui
+F:\Scratch\vcpkg\installed\x86-windows\include
+F:\Scratch\curl-7.66.0\curl-7.66.0\include
 
+lib dirs:
+F:\Scratch\curl-7.66.0\curl-7.66.0\build\Win32\VC15\DLL Debug
+F:\Qt\5.12.2\msvc2017\lib
+
+linked Libs:
+libcurld.lib
+Qt5Cored.lib
+Qt5Guid.lib
+Qt5Widgetsd.lib
+Qt5Gamepadd.lib
 
 Justification
 
@@ -29,3 +44,5 @@ Qt - Pro: Wide Support, detailed documentation. Easy to use but has advanced fea
 Use:
 1. GameViewer.exe  - To Pull todays games
 2. GameViewer.exe http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1 for custome date
+
+Memory - 50mb
