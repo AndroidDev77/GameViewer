@@ -43,6 +43,6 @@ Qt - Pro: Wide Support, detailed documentation. Easy to use but has advanced fea
 	 
 Use:
 1. GameViewer.exe  - To Pull todays games
-2. GameViewer.exe http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1 for custome date
+2. GameViewer.exe "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1" for custome date
 
 Memory - 50mb

@@ -71,10 +71,14 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 		int bottomTextTop = imageTop + heightBlock + imageHeight;
 		painter->drawText(QRect(rect.left(), bottomTextTop, rect.width(), heightBlock),
 			Qt::AlignCenter | Qt::TextWordWrap, subheadline);
+	}
+	// Draw Image in Lists
+	painter->drawImage(imageRect, image);
 
-		painter->drawImage(imageRect, image);
-
-		// Fill out Details view
+	// Fill out Details view
+	if (opt.state & QStyle::State_Selected)
+	{
+		
 		QString blurb = index.model()->data(index.model()->index(index.row(), 0), Qt::UserRole).toString(); // Blurb
 
 		if (gameViewerHandle != nullptr)
@@ -127,12 +131,11 @@ GameViewer::GameViewer(std::string testUrl)
 	url[0] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
 	//std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
 
-	std::future<int> gamesCount1;
-	std::future<int> gamesCount2;
 	int secDay = 0;
 	// Use todays date if testUrl is empty
 	if (testUrl.empty())
 	{
+		std::string staticURL = url[0];
 		//Get Todays date
 		time_t     now = time(0);
 		// Load Last Day that has games
@@ -149,7 +152,7 @@ GameViewer::GameViewer(std::string testUrl)
 		index = currentUrl.find("YYYY-MM-DD", index);
 
 		currentUrl.replace(index, 10, dateChar);
-
+		url[0] = currentUrl;
 		// Load Games Async
 		gamesCount1 = std::async(std::launch::async,loadGames,reader[0],currentUrl,gameModel[0], &gameList[0]);
 		secDay = 86400;
@@ -161,7 +164,7 @@ GameViewer::GameViewer(std::string testUrl)
 		// Replace YYYY-MM-DD with the day before date
 		strftime(dateChar, sizeof(dateChar), "%Y-%m-%d", &timeinfo);
 		index = 0;
-		currentUrl = url[0];
+		currentUrl = staticURL;
 		index = currentUrl.find("YYYY-MM-DD", index);
 
 		currentUrl.replace(index, 10, dateChar);
@@ -182,27 +185,6 @@ GameViewer::GameViewer(std::string testUrl)
 	int dateIndex = url[0].find("date=");
 	date[0] = url[0].substr(dateIndex + 5, 10);
 	date[1] = url[1].substr(dateIndex + 5, 10);
-
-	// if No games were loaded display that
-	// This is actually a blocking call until loadgames returns
-	// We can move this later
-	try
-	{
-		int gameCount = gamesCount1.get();
-		if (gameCount == 0)
-		{
-			date[0] += " - No Games On This Date";
-		}
-		gameCount = gamesCount2.get();
-		if (gameCount == 0)
-		{
-			date[1] += " - No Games On This Date";
-		}
-	}
-	catch (std::exception& ex)
-	{
-		qInfo() << ex.what();
-	}
 
 	setupUI();
 	
@@ -279,6 +261,13 @@ void GameViewer::setupUI()
 		// rework to get screensize
 		this->resize(1920, 1080);
 		QPixmap bkgnd("mlbBackground.jpg");
+		// If we can't find background image create a black one
+		if (bkgnd.isNull())
+		{
+			qInfo() << "Background Image not Loaded";
+			bkgnd = QPixmap(1920, 1080);
+			bkgnd.fill(Qt::darkBlue);
+		}
 		bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
 		QPalette palette;
 		palette.setBrush(QPalette::Background, bkgnd);
@@ -287,6 +276,30 @@ void GameViewer::setupUI()
 		// Create Custom Item Painter
 		gameViewDelegate = new GameViewDelegate();
 		gameViewDelegate->gameViewerHandle = this;
+
+
+		// if No games were loaded display that
+		// This is actually a blocking call until loadgames returns
+		// We can move this later
+		std::string gameList1Label = date[0];
+		std::string gameList2Label = date[1];
+		try
+		{
+			int gameCount = gamesCount1.get();
+			if (gameCount == 0)
+			{
+				gameList1Label += " - No Games On This Date";
+			}
+			gameCount = gamesCount2.get();
+			if (gameCount == 0)
+			{
+				gameList2Label +=  " - No Games On This Date";
+			}
+		}
+		catch (std::exception & ex)
+		{
+			qInfo() << ex.what();
+		}
 
 		// Create First ListView
 		listView[0] = new QListView();
@@ -355,12 +368,12 @@ void GameViewer::setupUI()
 		QLabel* listDate1 = new QLabel();
 		listDate1->setFont(dateTitleFont);
 		listDate1->setStyleSheet("QLabel{color: gray}");
-		listDate1->setText(date[0].c_str());
+		listDate1->setText(gameList1Label.c_str());
 
 		QLabel* listDate2 = new QLabel();
 		listDate2->setFont(dateTitleFont);
 		listDate2->setStyleSheet("QLabel{color: gray}");
-		listDate2->setText(date[1].c_str());
+		listDate2->setText(gameList2Label.c_str());
 
 		layout = new QVBoxLayout();
 		layout->addWidget(listDate1);
@@ -402,6 +415,7 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 		Json::Value root;
 		int res;
 		int totalGames = 0;
+
 		res = reader->ReadJSONFromURL(url, &root);
 		if (res == CURLE_OK)
 		{
@@ -421,9 +435,15 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 				{
 					res = reader->ReadImageFromURL(game.imageUrl, game.image);
 				}
-				if (res != CURLE_OK || game.image == nullptr)
+				if (res != CURLE_OK || game.image->isNull())
 				{
-					game.image->load("genericLogo.jpg");
+					bool imageLoaded = game.image->load("genericLogo.jpg");
+
+					if (!imageLoaded)
+					{
+						
+						game.image->fill(Qt::gray);
+					}
 				}
 				gameList->push_back(game);
 			}

@@ -175,6 +175,10 @@ private:
 
 	struct tm         timeinfo;
 
+	// Number of Games for Day listed and day before
+	std::future<int> gamesCount1;
+	std::future<int> gamesCount2;
+
 };
 
 // 
