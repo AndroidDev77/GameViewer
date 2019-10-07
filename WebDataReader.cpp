@@ -158,6 +158,10 @@ int WebDataReader::ReadImageFromURL(std::string url, QImage* image)
 
 	// perform action
 	res = curl_easy_perform(curl);
+
+	// Clean up
+	curl_easy_cleanup(curl);
+
 	if (res == CURLE_OK)
 	{
 		// Create Image

@@ -35,29 +35,29 @@ Game::Game(Json::Value gameValue)
 	away.score        = gameValue["teams"]["away"]["score"].asInt();
 	away.seriesNumber = gameValue["teams"]["away"]["seriesNumber"].asInt();
 	away.isWinner     = gameValue["teams"]["away"]["isWinner"].asBool();
-	away.splitSquad   = gameValue["teams"]["away"]["splitSquad"].asBool();
+	//away.splitSquad   = gameValue["teams"]["away"]["splitSquad"].asBool();
 
 	away.team.id      = gameValue["teams"]["away"]["team"]["id"].asInt();
 	away.team.name    = gameValue["teams"]["away"]["team"]["name"].asString();
 	away.team.link    = gameValue["teams"]["away"]["team"]["link"].asString();
 
-	away.leagueRecord.wins   = gameValue["teams"]["away"]["leagueRecord"]["wins"].asInt();
-	away.leagueRecord.losses = gameValue["teams"]["away"]["leagueRecord"]["losses"].asInt();
-	away.leagueRecord.pct    = gameValue["teams"]["away"]["leagueRecord"]["pct"].asString();
+	//away.leagueRecord.wins   = gameValue["teams"]["away"]["leagueRecord"]["wins"].asInt();
+	//away.leagueRecord.losses = gameValue["teams"]["away"]["leagueRecord"]["losses"].asInt();
+	//away.leagueRecord.pct    = gameValue["teams"]["away"]["leagueRecord"]["pct"].asString();
 
 	//Set Home Team
 	home.score        = gameValue["teams"]["home"]["score"].asInt();
 	home.seriesNumber = gameValue["teams"]["home"]["seriesNumber"].asInt();
 	home.isWinner     = gameValue["teams"]["home"]["isWinner"].asBool();
-	home.splitSquad   = gameValue["teams"]["home"]["splitSquad"].asBool();
+	//home.splitSquad   = gameValue["teams"]["home"]["splitSquad"].asBool();
 
 	home.team.id      = gameValue["teams"]["home"]["team"]["id"].asInt();
 	home.team.name    = gameValue["teams"]["home"]["team"]["name"].asString();
 	home.team.link    = gameValue["teams"]["home"]["team"]["link"].asString();
 
-	home.leagueRecord.wins   = gameValue["teams"]["home"]["leagueRecord"]["wins"].asInt();
-	home.leagueRecord.losses = gameValue["teams"]["home"]["leagueRecord"]["losses"].asInt();
-	home.leagueRecord.pct    = gameValue["teams"]["home"]["leagueRecord"]["pct"].asString();
+	//home.leagueRecord.wins   = gameValue["teams"]["home"]["leagueRecord"]["wins"].asInt();
+	//home.leagueRecord.losses = gameValue["teams"]["home"]["leagueRecord"]["losses"].asInt();
+	//home.leagueRecord.pct    = gameValue["teams"]["home"]["leagueRecord"]["pct"].asString();
 
 	// Validate Data
 
@@ -86,7 +86,7 @@ Game::Game(Json::Value gameValue)
 
 Game::~Game()
 {
-
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

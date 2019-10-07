@@ -110,8 +110,8 @@ QVariant GameModel::data(const QModelIndex& index, int role) const
 	{
 		return QVariant(); 
 	}
-
-	if (role == Qt::ForegroundRole)
+	// Using Enum to fetch image
+	if (role == Qt::BackgroundRole)
 	{	
 		return *(gameList->at(index.row()).image);
 	}

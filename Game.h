@@ -58,7 +58,7 @@ struct GameEvent_t {
 	/// <summary>	The team. </summary>
 	Team_t team;
 	/// <summary>	The league record. </summary>
-	LeagueRecord_t leagueRecord;
+	//LeagueRecord_t leagueRecord;
 };
 
 // Keeping Game Simple for fast access
@@ -69,7 +69,7 @@ struct GameEvent_t {
 /// <remarks>	Chris, 10/6/2019. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class Game
+class Game 
 {
 public:
 	/// <summary>	Identifier for the calendar event. </summary>

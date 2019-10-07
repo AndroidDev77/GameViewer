@@ -23,7 +23,7 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
 	QString headline = index.model()->data(index.model()->index(index.row(), 0), Qt::DisplayRole).toString(); // Headline
 	QString subheadline = index.model()->data(index.model()->index(index.row(), 0), Qt::ToolTipRole).toString(); // Subheadline
-	QImage  image = index.model()->data(index.model()->index(index.row(), 0), Qt::ForegroundRole).value<QImage>(); // Image
+	QImage  image = index.model()->data(index.model()->index(index.row(), 0), Qt::BackgroundRole).value<QImage>(); // Image
 
 	opt.text = "";
 	QStyle* style = opt.widget ? opt.widget->style() : QApplication::style();
@@ -121,6 +121,7 @@ GameViewer::GameViewer(std::string testUrl)
 	//TODO: combine readers and use curl_multi
 	reader[0] = new WebDataReader();
 	reader[1] = new WebDataReader();
+	// We could combine these models
 	gameModel[0] = new GameModel();
 	gameModel[1] = new GameModel();
 
@@ -129,19 +130,25 @@ GameViewer::GameViewer(std::string testUrl)
 	qInfo() << "Screen Height: " << rec.height() << " Screen Width: " << rec.width();
 
 	url[0] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
-	//std::string url = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-10&sportId=1";
 
 	int secDay = 0;
 	// Use todays date if testUrl is empty
+	if (!testUrl.empty())
+	{
+		// Testing
+		qInfo() << "Using: " << testUrl.c_str();
+		url[0] = testUrl;
+		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1";
+		gamesCount1 = std::async(std::launch::async, loadGames, reader[0], url[0], gameModel[0], &gameList[0]);
+		gamesCount2 = std::async(std::launch::async, loadGames, reader[1], url[1], gameModel[1], &gameList[1]);
+	}
 	if (testUrl.empty())
 	{
 		std::string staticURL = url[0];
 		//Get Todays date
 		time_t     now = time(0);
-		// Load Last Day that has games
 
 		// Substract day if no games today
-		now -= secDay;
 		char       dateChar[11];
 		gmtime_s(&timeinfo, &now);
 
@@ -150,15 +157,14 @@ GameViewer::GameViewer(std::string testUrl)
 		size_t index = 0;
 		std::string currentUrl = url[0];
 		index = currentUrl.find("YYYY-MM-DD", index);
-
 		currentUrl.replace(index, 10, dateChar);
 		url[0] = currentUrl;
+
 		// Load Games Async
 		gamesCount1 = std::async(std::launch::async,loadGames,reader[0],currentUrl,gameModel[0], &gameList[0]);
-		secDay = 86400;
 
+		int secDay = 86400;
 		time_t dayBefore = now - secDay;
-
 		gmtime_s(&timeinfo, &dayBefore);
 
 		// Replace YYYY-MM-DD with the day before date
@@ -166,20 +172,12 @@ GameViewer::GameViewer(std::string testUrl)
 		index = 0;
 		currentUrl = staticURL;
 		index = currentUrl.find("YYYY-MM-DD", index);
-
 		currentUrl.replace(index, 10, dateChar);
 		url[1] = currentUrl;
-		gamesCount2 = std::async(std::launch::async, loadGames,reader[1], currentUrl,gameModel[1], &gameList[1]);
 
+		gamesCount2 = std::async(std::launch::async, loadGames,reader[1], currentUrl,gameModel[1], &gameList[1]);
 	}
-	else 
-	{
-		// Testing
-		url[0] = testUrl;
-		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1";
-		gamesCount1 = std::async(std::launch::async, loadGames, reader[0], url[0], gameModel[0], &gameList[0]);
-		gamesCount2 = std::async(std::launch::async, loadGames, reader[1], url[1], gameModel[1], &gameList[1]);
-	}
+
 
 	// Get Date Strings to display later
 	int dateIndex = url[0].find("date=");
@@ -243,6 +241,7 @@ GameViewer::~GameViewer()
 	delete reader[1];
 	delete gameModel[0];
 	delete gameModel[1];
+	// We don't need to delete other members as QT delets all children
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,9 +299,11 @@ void GameViewer::setupUI()
 		{
 			qInfo() << ex.what();
 		}
+		// Main Central Widget
+		centralWidget = new QWidget(this);
 
-		// Create First ListView
-		listView[0] = new QListView();
+		// Create First ListView with central widget as parent
+		listView[0] = new QListView(centralWidget);
 		
 		listView[0]->setItemDelegate(gameViewDelegate);
 		listView[0]->setModel(gameModel[0]);
@@ -317,7 +318,7 @@ void GameViewer::setupUI()
 		listView[0]->setFlow(QListView::LeftToRight);
 
 		// Create Second ListView
-		listView[1] = new QListView();
+		listView[1] = new QListView(centralWidget);
 		listView[1]->setItemDelegate(gameViewDelegate);
 		listView[1]->setModel(gameModel[1]);
 		listView[1]->setAutoFillBackground(false);  /* make backgrounds transparent */
@@ -331,20 +332,20 @@ void GameViewer::setupUI()
 		// Make it Horizontal
 		listView[1]->setFlow(QListView::LeftToRight);
 
-		bottomWidget = new  QWidget();
+		bottomWidget = new  QWidget(centralWidget);
 		bottomWidget->resize(1920, 300);
 		bottomWidget->setAutoFillBackground(false);  /* make backgrounds transparent */
 		//scrollArea->viewport()->setAutoFillBackground(false);
 
 		hLayout = new QHBoxLayout();
 
-		textBrowser = new QTextBrowser(); /* Text panel to view game details */
+		textBrowser = new QTextBrowser(centralWidget); /* Text panel to view game details */
 		textBrowser->viewport()->setAutoFillBackground(false);
 		QFont font("Verdana", 14);
 		textBrowser->setCurrentFont(font);
 		textBrowser->setTextColor(QColor(Qt::gray));
 
-		bottomImageWidget = new QLabel();
+		bottomImageWidget = new QLabel(centralWidget);
 		bottomImageWidget->setScaledContents(true);
 
 		// Set Size policy so text is 66% of screen and image is 33%
@@ -365,24 +366,24 @@ void GameViewer::setupUI()
 
 		// Create Date Labels
 		QFont dateTitleFont("Verdana", 16);
-		QLabel* listDate1 = new QLabel();
+		QLabel* listDate1 = new QLabel(centralWidget);
 		listDate1->setFont(dateTitleFont);
 		listDate1->setStyleSheet("QLabel{color: gray}");
 		listDate1->setText(gameList1Label.c_str());
 
-		QLabel* listDate2 = new QLabel();
+		QLabel* listDate2 = new QLabel(centralWidget);
 		listDate2->setFont(dateTitleFont);
 		listDate2->setStyleSheet("QLabel{color: gray}");
 		listDate2->setText(gameList2Label.c_str());
 
-		layout = new QVBoxLayout();
+		layout = new QVBoxLayout(centralWidget); /* Layout for Listviews and Liberls*/
 		layout->addWidget(listDate1);
 		layout->addWidget(listView[0]);
 		layout->addWidget(listDate2);
 		layout->addWidget(listView[1]);
 		layout->addWidget(bottomWidget);
 
-		centralWidget = new QWidget(this);
+		
 		centralWidget->setLayout(layout);
 		this->setCentralWidget(centralWidget);
 
