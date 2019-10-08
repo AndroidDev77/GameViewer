@@ -134,6 +134,7 @@ GameViewer::GameViewer(std::string testUrl)
 
 	url[0] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
 
+
 	// Use todays date if testUrl is empty
 	if (!testUrl.empty())
 	{
@@ -339,7 +340,7 @@ void GameViewer::setupUI()
 		bottomWidget->setAutoFillBackground(false);  /* make backgrounds transparent */
 		//scrollArea->viewport()->setAutoFillBackground(false);
 
-		hLayout = new QHBoxLayout(this);
+		hLayout = new QHBoxLayout(centralWidget);
 
 		textBrowser = new QTextBrowser(bottomWidget); /* Text panel to view game details */
 		textBrowser->viewport()->setAutoFillBackground(false);
@@ -440,7 +441,6 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 				}
 				if (res != CURLE_OK || game.image->isNull())
 				{
-					// If No Image loaded load Stock image
 					bool imageLoaded = game.image->load("genericLogo.jpg");
 
 					if (!imageLoaded)
