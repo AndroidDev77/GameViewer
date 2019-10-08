@@ -21,8 +21,6 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
 	initStyleOption(&opt, index);
 
-	QString headline = index.model()->data(index.model()->index(index.row(), 0), Qt::DisplayRole).toString(); // Headline
-	QString subheadline = index.model()->data(index.model()->index(index.row(), 0), Qt::ToolTipRole).toString(); // Subheadline
 	QImage  image = index.model()->data(index.model()->index(index.row(), 0), Qt::BackgroundRole).value<QImage>(); // Image
 
 	opt.text = "";
@@ -58,27 +56,29 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 	int imageTop = heightBlock;
 
 	QRect imageRect(imageLeft, imageTop + heightBlock, imageWidth, imageHeight);
-	// Set font
-	QFont font("Verdana", 8);
-	painter->setFont(font);
+
 	if (opt.state & QStyle::State_Selected)
 	{
-		font.setBold(true);
+		// Set font
+		QFont font("Verdana", 8);
+		font.setBold(true); /* Set bold for headline*/
+		painter->setFont(font);
+
+		QString headline = index.model()->data(index.model()->index(index.row(), 0), Qt::DisplayRole).toString(); // Headline
+		QString subheadline = index.model()->data(index.model()->index(index.row(), 0), Qt::ToolTipRole).toString(); // Subheadline
+
+		
 		QRect rectTopText(rect.left(), rect.top(), rect.width(), heightBlock);
-		rectTopText.moveBottom(imageRect.top() - 5);
+		rectTopText.moveBottom(imageRect.top() - 5); /* Margin between image and text*/
+
 		painter->drawText(rectTopText, Qt::AlignCenter | Qt::TextWordWrap, headline);
-		font.setBold(false);
+		font.setBold(false); /* Turn off bold for subheadline*/
+
 		int bottomTextTop = imageTop + heightBlock + imageHeight;
+
 		painter->drawText(QRect(rect.left(), bottomTextTop, rect.width(), heightBlock),
 			Qt::AlignCenter | Qt::TextWordWrap, subheadline);
-	}
-	// Draw Image in Lists
-	painter->drawImage(imageRect, image);
 
-	// Fill out Details view
-	if (opt.state & QStyle::State_Selected)
-	{
-		
 		QString blurb = index.model()->data(index.model()->index(index.row(), 0), Qt::UserRole).toString(); // Blurb
 
 		if (gameViewerHandle != nullptr)
@@ -86,7 +86,10 @@ void GameViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 			gameViewerHandle->updateTextView(blurb);
 			gameViewerHandle->updateDetailImage(&image);
 		}
+
 	}
+	// Draw Image in Lists
+	painter->drawImage(imageRect, image);
 
 }
 
@@ -131,7 +134,6 @@ GameViewer::GameViewer(std::string testUrl)
 
 	url[0] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
 
-	int secDay = 0;
 	// Use todays date if testUrl is empty
 	if (!testUrl.empty())
 	{
@@ -438,6 +440,7 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 				}
 				if (res != CURLE_OK || game.image->isNull())
 				{
+					// If No Image loaded load Stock image
 					bool imageLoaded = game.image->load("genericLogo.jpg");
 
 					if (!imageLoaded)
