@@ -41,23 +41,23 @@ Game::Game(Json::Value gameValue)
 	away.team.name    = gameValue["teams"]["away"]["team"]["name"].asString();
 	away.team.link    = gameValue["teams"]["away"]["team"]["link"].asString();
 
-	//away.leagueRecord.wins   = gameValue["teams"]["away"]["leagueRecord"]["wins"].asInt();
-	//away.leagueRecord.losses = gameValue["teams"]["away"]["leagueRecord"]["losses"].asInt();
-	//away.leagueRecord.pct    = gameValue["teams"]["away"]["leagueRecord"]["pct"].asString();
+	away.leagueRecord.wins   = gameValue["teams"]["away"]["leagueRecord"]["wins"].asInt();
+	away.leagueRecord.losses = gameValue["teams"]["away"]["leagueRecord"]["losses"].asInt();
+	away.leagueRecord.pct    = gameValue["teams"]["away"]["leagueRecord"]["pct"].asString();
 
 	//Set Home Team
 	home.score        = gameValue["teams"]["home"]["score"].asInt();
 	home.seriesNumber = gameValue["teams"]["home"]["seriesNumber"].asInt();
 	home.isWinner     = gameValue["teams"]["home"]["isWinner"].asBool();
-	//home.splitSquad   = gameValue["teams"]["home"]["splitSquad"].asBool();
+	home.splitSquad   = gameValue["teams"]["home"]["splitSquad"].asBool();
 
 	home.team.id      = gameValue["teams"]["home"]["team"]["id"].asInt();
 	home.team.name    = gameValue["teams"]["home"]["team"]["name"].asString();
 	home.team.link    = gameValue["teams"]["home"]["team"]["link"].asString();
 
-	//home.leagueRecord.wins   = gameValue["teams"]["home"]["leagueRecord"]["wins"].asInt();
-	//home.leagueRecord.losses = gameValue["teams"]["home"]["leagueRecord"]["losses"].asInt();
-	//home.leagueRecord.pct    = gameValue["teams"]["home"]["leagueRecord"]["pct"].asString();
+	home.leagueRecord.wins   = gameValue["teams"]["home"]["leagueRecord"]["wins"].asInt();
+	home.leagueRecord.losses = gameValue["teams"]["home"]["leagueRecord"]["losses"].asInt();
+	home.leagueRecord.pct    = gameValue["teams"]["home"]["leagueRecord"]["pct"].asString();
 
 	// Validate Data
 
@@ -83,6 +83,7 @@ Game::Game(Json::Value gameValue)
 ///
 /// <remarks>	Chris, 10/6/2019. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 Game::~Game()
 {
@@ -118,4 +119,88 @@ GameEvent_t Game::getWinner()
 		return tie;
 	}
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets CalendarEventID. </summary>
+///
+/// <returns>	The a Unique ID for Game based on date. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Game::getCalendarEventID()
+{
+	return this->calendarEventID;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets date. </summary>
+///
+///
+/// <returns>	The Date the game took place. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Game::getDate()
+{
+	return this->date;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets headline. </summary>
+///
+///
+/// <returns>	The headline set in Game Context JSON text. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Game::getHeadline()
+{
+	return this->headline;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets subheadline. </summary>
+///
+///
+/// <returns>	The bottom headline. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Game::getSubheadline()
+{
+	return this->subheadline;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets Blurb. </summary>
+///
+///
+/// <returns>	The detailed summary of the game. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Game::getBlurb()
+{
+	return this->blurb;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets Image URL. </summary>
+///
+///
+/// <returns>	A string for Image URL. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Game::getImageUrl()
+{
+	return this->imageUrl;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Gets Image. </summary>
+///
+///
+/// <returns>	The QImage pointer. </returns>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QImage* Game::getImage()
+{
+	return image;
+}
+
 

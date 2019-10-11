@@ -336,7 +336,7 @@ void GameViewer::setupUI()
 		listView[1]->setFlow(QListView::LeftToRight);
 
 		bottomWidget = new  QWidget(centralWidget);
-		bottomWidget->resize(1920, 300);
+		//bottomWidget->resize(1920, 300);
 		bottomWidget->setAutoFillBackground(false);  /* make backgrounds transparent */
 		//scrollArea->viewport()->setAutoFillBackground(false);
 
@@ -349,7 +349,7 @@ void GameViewer::setupUI()
 		textBrowser->setTextColor(QColor(Qt::gray));
 
 		bottomImageWidget = new QLabel(bottomWidget);
-		bottomImageWidget->setScaledContents(true);
+		//bottomImageWidget->setScaledContents(true);
 
 		// Set Size policy so text is 66% of screen and image is 33%
 		QSizePolicy imageSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -392,6 +392,7 @@ void GameViewer::setupUI()
 
 		// Set properties for selection Model
 		selectionModel = listView[0]->selectionModel();
+		
 		this->show();
 	}
 	catch (const std::exception& e)
@@ -435,18 +436,18 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 				Game game(*it);
 
 				// Check Url is valid
-				if (game.imageUrl != "")
+				if (game.getImageUrl() != "")
 				{
-					res = reader->ReadImageFromURL(game.imageUrl, game.image);
+					res = reader->ReadImageFromURL(game.getImageUrl(), game.getImage());
 				}
-				if (res != CURLE_OK || game.image->isNull())
+				if (res != CURLE_OK || game.getImage()->isNull())
 				{
-					bool imageLoaded = game.image->load("genericLogo.jpg");
+					bool imageLoaded = game.getImage()->load("genericLogo.jpg");
 
 					if (!imageLoaded)
 					{
 						
-						game.image->fill(Qt::gray);
+						game.getImage()->fill(Qt::gray);
 					}
 				}
 				gameList->push_back(game);

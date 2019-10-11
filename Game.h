@@ -58,7 +58,7 @@ struct GameEvent_t {
 	/// <summary>	The team. </summary>
 	Team_t team;
 	/// <summary>	The league record. </summary>
-	//LeagueRecord_t leagueRecord;
+	LeagueRecord_t leagueRecord;
 };
 
 // Keeping Game Simple for fast access
@@ -72,29 +72,16 @@ struct GameEvent_t {
 class Game 
 {
 public:
-	/// <summary>	Identifier for the calendar event. </summary>
-	std::string calendarEventID = "";
-	/// <summary>	The date. </summary>
-	std::string date            = "";
-	/// <summary>	The headline. </summary>
-	std::string headline        = "";
-	/// <summary>	The subheadline. </summary>
-	std::string subheadline     = "";
-	/// <summary>	URL of the image. </summary>
-	std::string imageUrl        = "";
-	/// <summary>	The blurb. </summary>
-	std::string blurb           = "";
 
-	/// <summary>	True if is tie, false if not. </summary>
-	bool        isTie           = false;
-	// 14298 Bytes = 320x180
-	/// <summary>	The image. </summary>
-	QImage*      image;
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// <summary>	Gets the winner. </summary>
+	///
+	/// <remarks>	Chris, 10/6/2019. </remarks>
+	///
+	/// <returns>	The winner. </returns>
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/// <summary>	The away. </summary>
-	GameEvent_t away;
-	/// <summary>	The home. </summary>
-	GameEvent_t home;
+	GameEvent_t getWinner();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// <summary>	Constructor. </summary>
@@ -114,17 +101,48 @@ public:
 
 	~Game();
 
+	std::string getCalendarEventID();
+
+	std::string getDate();
+
+	std::string getHeadline();
+
+	std::string getSubheadline();
+
+	std::string getBlurb();
+
+	std::string getImageUrl();
+
+	QImage* getImage();
+
+
+
 private:
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// <summary>	Gets the winner. </summary>
-	///
-	/// <remarks>	Chris, 10/6/2019. </remarks>
-	///
-	/// <returns>	The winner. </returns>
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// <summary>	Identifier for the calendar event. </summary>
+	std::string calendarEventID = "";
+	/// <summary>	The date. </summary>
+	std::string date = "";
+	/// <summary>	The headline. </summary>
+	std::string headline = "";
+	/// <summary>	The subheadline. </summary>
+	std::string subheadline = "";
+	/// <summary>	URL of the image. </summary>
+	std::string imageUrl = "";
+	/// <summary>	The blurb. </summary>
+	std::string blurb = "";
 
-	GameEvent_t getWinner();
+	/// <summary>	The away. </summary>
+	GameEvent_t away;
+	/// <summary>	The home. </summary>
+	GameEvent_t home;
+
+	/// <summary>	True if is tie, false if not. </summary>
+	bool        isTie = false;
+	// 14298 Bytes = 320x180
+	/// <summary>	The image. </summary>
+	QImage* image;
+	
 
 
 };

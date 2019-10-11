@@ -113,21 +113,21 @@ QVariant GameModel::data(const QModelIndex& index, int role) const
 	// Using Enum to fetch image
 	if (role == Qt::BackgroundRole)
 	{	
-		return *(gameList->at(index.row()).image);
+		return *(gameList->at(index.row()).getImage());
 	}
 	if (role == Qt::DisplayRole)
 	{
-		return QVariant(gameList->at(index.row()).headline.c_str());
+		return QVariant(gameList->at(index.row()).getHeadline().c_str());
 	}
 	// Using Enum to fetch subheadline
 	if (role == Qt::ToolTipRole)
 	{
-		return QVariant(gameList->at(index.row()).subheadline.c_str());
+		return QVariant(gameList->at(index.row()).getSubheadline().c_str());
 	}
 
 	if (role == Qt::UserRole)
 	{
-		return QVariant(gameList->at(index.row()).blurb.c_str());
+		return QVariant(gameList->at(index.row()).getBlurb().c_str());
 	}
 
 	return QVariant();
