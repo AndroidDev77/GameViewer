@@ -78,8 +78,12 @@ static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb
 
 WebDataReader::WebDataReader()
 {
-	curl = curl_easy_init();
-	res = CURLE_OK;
+
+}
+
+WebDataReader::~WebDataReader()
+{
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +102,8 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 
 	std::string readBuffer;
 	// Not Thread safe
+	CURL* curl;
+	CURLcode res;
 	curl_global_init(CURL_GLOBAL_ALL);
 	
 	curl = curl_easy_init();
@@ -139,33 +145,37 @@ int WebDataReader::ReadImageFromURL(std::string url, QImage* image)
 	chunk.memory = (char*)malloc(1);
 	chunk.size = 0;
 
+	CURL* curl;
+	CURLcode res;
 	// Not Thread safe
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	// init curl 
 	curl = curl_easy_init();
-
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-
-	// set callback function
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteImageMemoryCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)& chunk);
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-
-	// Needed to bypass https check
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
-
-	// perform action
-	res = curl_easy_perform(curl);
-
-	// Clean up
-	curl_easy_cleanup(curl);
-
-	if (res == CURLE_OK)
+	if (curl)
 	{
-		// Create Image
-		image->loadFromData((const uchar*)chunk.memory, chunk.size, "JPG");
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+		// set callback function
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteImageMemoryCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+
+		// Needed to bypass https check
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+
+		// perform action
+		res = curl_easy_perform(curl);
+
+		// Clean up
+		curl_easy_cleanup(curl);
+
+		if (res == CURLE_OK)
+		{
+			// Create Image
+			image->loadFromData((const uchar*)chunk.memory, chunk.size);
+		}
 	}
 	// Free Memory
 	free(chunk.memory);

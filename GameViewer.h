@@ -84,20 +84,11 @@ public:
 	/// <param name="reader">   	[in,out] If non-null, the reader. </param>
 	/// <param name="url">			URL of the resource. </param>
 	/// <param name="gameModel">	[in,out] If non-null, the game model. </param>
-	/// <param name="gameList"> 	[in,out] If non-null, list of games. </param>
 	///
 	/// <returns>	The games. </returns>
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static int loadGames(WebDataReader* reader, std::string url, GameModel* gameModel, std::vector<Game>* gameList);
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// <summary>	Sets up the user interface. </summary>
-	///
-	/// <remarks>	Chris, 10/6/2019. </remarks>
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	void setupUI();
+	static int loadGames(WebDataReader* reader, std::string url, GameModel* gameModel);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// <summary>	Updates the text view described by text. </summary>
@@ -118,6 +109,14 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void updateDetailImage(QImage* image);
+protected:
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// <summary>	Sets up the user interface. </summary>
+	///
+	/// <remarks>	Chris, 10/6/2019. </remarks>
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void setupUI();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// <summary>	Key press event. </summary>
@@ -129,14 +128,15 @@ public:
 
 	void keyPressEvent(QKeyEvent* event);
 
+	void closeEvent(QCloseEvent* event);
 
 private:
 	/// <summary>	The game model[ 2]. </summary>
 	GameModel*           gameModel[2];
 	/// <summary>	The game view delegate that provides a custom paint. </summary>
 	GameViewDelegate*    gameViewDelegate;
-	/// <summary>	The reader[ 2]. </summary>
-	WebDataReader*       reader[2];
+	/// <summary>	The reader. </summary>
+	WebDataReader*       reader;
 
 	/// <summary>	The list view[ 2]. </summary>
 	QListView*           listView[2];
@@ -156,14 +156,14 @@ private:
 	QItemSelectionModel* selectionModel;
 
 	/// <summary>	The gamepad. </summary>
-	QGamepad* gamepad;
+	//QGamepad* gamepad;
 
 	
 
 	// Games are stored in simple vector 
 	// Most amount of games in a is ~30
 	/// <summary>	The game list[ 2]. </summary>
-	std::vector<Game> gameList[2];
+	//std::vector<Game> gameList[2];
 
 	// Today and Yesterdays date in MM-DD-YYYY
 	std::string date[2];

@@ -17,7 +17,7 @@
 GameModel::GameModel(QObject* parent)
 	: QAbstractListModel(parent), gameCount(0)
 {
-	gameList = nullptr;
+	gameList = new std::vector<Game*>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,12 @@ GameModel::GameModel(QObject* parent)
 
 GameModel::~GameModel()
 {
+	for (auto it = gameList->begin(); it != gameList->end(); )
+	{
+		delete *it;
+		it = gameList->erase(it);
+		//++it;
+	}
 	delete gameList;
 }
 
@@ -113,21 +119,21 @@ QVariant GameModel::data(const QModelIndex& index, int role) const
 	// Using Enum to fetch image
 	if (role == Qt::BackgroundRole)
 	{	
-		return *(gameList->at(index.row()).getImage());
+		return *(gameList->at(index.row())->getImage());
 	}
 	if (role == Qt::DisplayRole)
 	{
-		return QVariant(gameList->at(index.row()).getHeadline().c_str());
+		return QVariant(gameList->at(index.row())->getHeadline().c_str());
 	}
 	// Using Enum to fetch subheadline
 	if (role == Qt::ToolTipRole)
 	{
-		return QVariant(gameList->at(index.row()).getSubheadline().c_str());
+		return QVariant(gameList->at(index.row())->getSubheadline().c_str());
 	}
 
 	if (role == Qt::UserRole)
 	{
-		return QVariant(gameList->at(index.row()).getBlurb().c_str());
+		return QVariant(gameList->at(index.row())->getBlurb().c_str());
 	}
 
 	return QVariant();
@@ -158,7 +164,7 @@ Qt::ItemFlags GameModel::flags(const QModelIndex& index) const
 /// <param name="list">	[in,out] If non-null, the list. </param>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GameModel::setList(std::vector<Game>* list) 
+std::vector<Game*>* GameModel::getList()
 {
-	gameList = list;
+	return gameList;
 }

@@ -80,14 +80,11 @@ public:
 	Qt::ItemFlags flags(const QModelIndex& index) const;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// <summary>	Sets a list. </summary>
+	/// <summary>	Gets the game list. </summary>
 	///
-	/// <remarks>	Chris, 10/6/2019. </remarks>
-	///
-	/// <param name="list">	[in,out] If non-null, the list. </param>
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void setList(std::vector<Game>* list);
+	std::vector<Game*>* getList();
 
 protected:
 
@@ -113,10 +110,12 @@ protected:
 
 	void fetchMore(const QModelIndex& parent) override;
 
+	
+
 private:
 
 	/// <summary>	List of games. </summary>
-	std::vector<Game>* gameList;
+	std::vector<Game*>* gameList;
 	size_t gameCount;
 };
 

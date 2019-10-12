@@ -28,6 +28,7 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	WebDataReader();
+	~WebDataReader();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// <summary>	Reads JSON from URL. </summary>
@@ -55,11 +56,6 @@ public:
 
 	int ReadImageFromURL(std::string url, QImage* image);
 
-private:
-	/// <summary>	The curl. </summary>
-	CURL* curl;
-	/// <summary>	The return code. </summary>
-	CURLcode res;
 
 };
 

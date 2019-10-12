@@ -121,9 +121,7 @@ QSize GameViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
 
 GameViewer::GameViewer(std::string testUrl)
 {
-	//TODO: combine readers and use curl_multi
-	reader[0] = new WebDataReader();
-	reader[1] = new WebDataReader();
+	reader = new WebDataReader();
 	// We could combine these models
 	gameModel[0] = new GameModel();
 	gameModel[1] = new GameModel();
@@ -142,8 +140,10 @@ GameViewer::GameViewer(std::string testUrl)
 		qInfo() << "Using: " << testUrl.c_str();
 		url[0] = testUrl;
 		url[1] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=2018-06-09&sportId=1";
-		gamesCount1 = std::async(std::launch::async, loadGames, reader[0], url[0], gameModel[0], &gameList[0]);
-		gamesCount2 = std::async(std::launch::async, loadGames, reader[1], url[1], gameModel[1], &gameList[1]);
+		gamesCount1 = std::async(std::launch::async, loadGames, reader, url[0], gameModel[0]);
+		// Wait until first gameModel is loaded
+		gamesCount1.wait();
+		gamesCount2 = std::async(std::launch::async, loadGames, reader, url[1], gameModel[1]);
 	}
 	if (testUrl.empty())
 	{
@@ -164,7 +164,7 @@ GameViewer::GameViewer(std::string testUrl)
 		url[0] = currentUrl;
 
 		// Load Games Async
-		gamesCount1 = std::async(std::launch::async,loadGames,reader[0],currentUrl,gameModel[0], &gameList[0]);
+		gamesCount1 = std::async(std::launch::async,loadGames,reader,currentUrl,gameModel[0]);
 
 		int secDay = 86400;
 		time_t dayBefore = now - secDay;
@@ -178,7 +178,7 @@ GameViewer::GameViewer(std::string testUrl)
 		currentUrl.replace(index, 10, dateChar);
 		url[1] = currentUrl;
 
-		gamesCount2 = std::async(std::launch::async, loadGames,reader[1], currentUrl,gameModel[1], &gameList[1]);
+		gamesCount2 = std::async(std::launch::async, loadGames,reader, currentUrl,gameModel[1]);
 	}
 
 
@@ -240,10 +240,12 @@ GameViewer::GameViewer(std::string testUrl)
 
 GameViewer::~GameViewer()
 {
-	delete reader[0];
-	delete reader[1];
+	delete reader;
 	delete gameModel[0];
 	delete gameModel[1];
+	delete gameViewDelegate;
+	// Child classes are deleted when parent is deleted
+	delete centralWidget;
 	// We don't need to delete other members as QT delets all children
 }
 
@@ -347,9 +349,10 @@ void GameViewer::setupUI()
 		QFont font("Verdana", 14);
 		textBrowser->setCurrentFont(font);
 		textBrowser->setTextColor(QColor(Qt::gray));
+		textBrowser->setFrameStyle(QFrame::NoFrame);
 
 		bottomImageWidget = new QLabel(bottomWidget);
-		//bottomImageWidget->setScaledContents(true);
+		bottomImageWidget->setAlignment(Qt::AlignCenter);
 
 		// Set Size policy so text is 66% of screen and image is 33%
 		QSizePolicy imageSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -414,7 +417,7 @@ void GameViewer::setupUI()
 /// <returns>	The games. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* gameModel,std::vector<Game> *gameList)
+int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* gameModel)
 {
 	try{
 		Json::Value root;
@@ -428,31 +431,32 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 
 			Json::Value games = root["dates"][0]["games"];
 
-			gameList->clear();
+			gameModel->getList()->clear();
 			Json::Value::iterator it;
+			int i = 0;
 			for (it = games.begin(); it != games.end(); ++it)
 			{
 				// Create Game
-				Game game(*it);
+				Game* game = new Game(*it);
+				gameModel->getList()->push_back(game);
 
 				// Check Url is valid
-				if (game.getImageUrl() != "")
+				if (game->getImageUrl() != "")
 				{
-					res = reader->ReadImageFromURL(game.getImageUrl(), game.getImage());
+					res = reader->ReadImageFromURL(game->getImageUrl(), game->getImage());
 				}
-				if (res != CURLE_OK || game.getImage()->isNull())
+				if (res != CURLE_OK || game->getImage()->isNull())
 				{
-					bool imageLoaded = game.getImage()->load("genericLogo.jpg");
+					bool imageLoaded = game->getImage()->load("genericLogo.jpg");
 
 					if (!imageLoaded)
 					{
 						
-						game.getImage()->fill(Qt::gray);
+						game->getImage()->fill(Qt::gray);
 					}
 				}
-				gameList->push_back(game);
+				i++;
 			}
-			gameModel->setList(gameList);
 		}
 		return totalGames;
 	}
@@ -520,3 +524,7 @@ void GameViewer::keyPressEvent(QKeyEvent* event)
 	}
 }
 
+void GameViewer::closeEvent(QCloseEvent* event)
+{
+	deleteLater();
+}

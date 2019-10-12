@@ -28,5 +28,7 @@ int main(int argc, char* argv[])
 	}
 	GameViewer* gameViewer = new GameViewer(testUrl);
 	
-	return app.exec();
+	int rtv = app.exec();
+
+	return rtv;
 }

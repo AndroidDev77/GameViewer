@@ -29,7 +29,7 @@ Game::Game(Json::Value gameValue)
 	// Image 9  is 480x270
 	// Image 12 is 320x180
 	// Could Costimize this for different platforms
-	imageUrl         = gameValue["content"]["editorial"]["recap"]["mlb"]["image"]["cuts"][12]["src"].asString();
+	imageUrl         = gameValue["content"]["editorial"]["recap"]["mlb"]["image"]["cuts"][9]["src"].asString();
 
 	//Set Away Team
 	away.score        = gameValue["teams"]["away"]["score"].asInt();
@@ -73,7 +73,7 @@ Game::Game(Json::Value gameValue)
 		headline = away.team.name + " Vs " + home.team.name;
 	}
 
-	image = new QImage(320,180,QImage::Format_RGB32);
+	image = new QImage(480,270,QImage::Format_RGB32);
 
 
 }
@@ -87,7 +87,7 @@ Game::Game(Json::Value gameValue)
 
 Game::~Game()
 {
-	
+	delete image;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
