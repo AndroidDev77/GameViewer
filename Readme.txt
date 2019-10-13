@@ -1,3 +1,5 @@
+![Screen Shot](https://github.com/AndroidDev77/GameViewer/MLBGamesScreenShot.png)
+
 Gameviewer Install - 32-bit
 
 libcurl with Openssl - https://curl.haxx.se/download.html
