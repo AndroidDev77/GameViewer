@@ -78,12 +78,15 @@ static size_t WriteImageMemoryCallback(void* contents, size_t size, size_t nmemb
 
 WebDataReader::WebDataReader()
 {
+	curl_global_init(CURL_GLOBAL_ALL);
+	curl = curl_easy_init();
 
 }
 
 WebDataReader::~WebDataReader()
 {
-
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,18 +104,14 @@ int WebDataReader::ReadJSONFromURL(std::string url, Json::Value* root)
 {
 
 	std::string readBuffer;
-	// Not Thread safe
-	CURL* curl;
 	CURLcode res;
-	curl_global_init(CURL_GLOBAL_ALL);
-	
-	curl = curl_easy_init();
+
 	if (curl) {
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteStringCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 		res = curl_easy_perform(curl);
-		curl_easy_cleanup(curl);
+
 	}
 
 	JSONCPP_STRING err;
@@ -145,13 +144,13 @@ int WebDataReader::ReadImageFromURL(std::string url, QImage* image)
 	chunk.memory = (char*)malloc(1);
 	chunk.size = 0;
 
-	CURL* curl;
+	//CURL* curl;
 	CURLcode res;
 	// Not Thread safe
-	curl_global_init(CURL_GLOBAL_ALL);
+	//curl_global_init(CURL_GLOBAL_ALL);
 
 	// init curl 
-	curl = curl_easy_init();
+	//curl = curl_easy_init();
 	if (curl)
 	{
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -169,12 +168,18 @@ int WebDataReader::ReadImageFromURL(std::string url, QImage* image)
 		res = curl_easy_perform(curl);
 
 		// Clean up
-		curl_easy_cleanup(curl);
+		//curl_easy_cleanup(curl);
 
 		if (res == CURLE_OK)
 		{
 			// Create Image
-			image->loadFromData((const uchar*)chunk.memory, chunk.size);
+			QByteArray a = QByteArray::fromRawData(reinterpret_cast<const char *>(chunk.memory), chunk.size);
+			QBuffer *b = new QBuffer();
+			b->setData(a);
+			b->open(QIODevice::ReadOnly);
+			*image = QImageReader(b, "").read();
+			delete b;
+			//image->loadFromData((const uchar*)chunk.memory, chunk.size);
 		}
 	}
 	// Free Memory

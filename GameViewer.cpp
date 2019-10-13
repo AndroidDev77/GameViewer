@@ -127,11 +127,10 @@ GameViewer::GameViewer(std::string testUrl)
 	gameModel[1] = new GameModel();
 
 	// Get Screen Size to adjust Image quality
-	QRect rec = QApplication::desktop()->screenGeometry();
-	qInfo() << "Screen Height: " << rec.height() << " Screen Width: " << rec.width();
+	//QRect rec = QApplication::desktop()->screenGeometry();
+	//qInfo() << "Screen Height: " << rec.height() << " Screen Width: " << rec.width();
 
 	url[0] = "http://statsapi.mlb.com/api/v1/schedule?hydrate=game(content(editorial(recap))),decisions&date=YYYY-MM-DD&sportId=1";
-
 
 	// Use todays date if testUrl is empty
 	if (!testUrl.empty())
@@ -178,6 +177,7 @@ GameViewer::GameViewer(std::string testUrl)
 		currentUrl.replace(index, 10, dateChar);
 		url[1] = currentUrl;
 
+		gamesCount1.wait();
 		gamesCount2 = std::async(std::launch::async, loadGames,reader, currentUrl,gameModel[1]);
 	}
 
@@ -189,7 +189,7 @@ GameViewer::GameViewer(std::string testUrl)
 
 	setupUI();
 	
-	// Setup gamepad
+	// Setup gamepad - Could not get Gamepad to detect controllers on Windows 10
 	/*QGamepadManager* gamepad_manager = QGamepadManager::instance();
 	QList<int> gamepads;
 	int i = 0;
@@ -432,8 +432,8 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 			Json::Value games = root["dates"][0]["games"];
 
 			gameModel->getList()->clear();
+
 			Json::Value::iterator it;
-			int i = 0;
 			for (it = games.begin(); it != games.end(); ++it)
 			{
 				// Create Game
@@ -455,7 +455,6 @@ int GameViewer::loadGames(WebDataReader* reader,std::string url, GameModel* game
 						game->getImage()->fill(Qt::gray);
 					}
 				}
-				i++;
 			}
 		}
 		return totalGames;

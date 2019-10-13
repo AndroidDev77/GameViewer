@@ -32,7 +32,6 @@ GameModel::~GameModel()
 	{
 		delete *it;
 		it = gameList->erase(it);
-		//++it;
 	}
 	delete gameList;
 }

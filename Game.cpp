@@ -73,7 +73,7 @@ Game::Game(Json::Value gameValue)
 		headline = away.team.name + " Vs " + home.team.name;
 	}
 
-	image = new QImage(480,270,QImage::Format_RGB32);
+	image = new QImage();
 
 
 }
