@@ -1,4 +1,4 @@
-![Screen Shot](https://github.com/AndroidDev77/GameViewer/MLBGamesScreenShot.png)
+![Screen Shot](https://raw.githubusercontent.com/AndroidDev77/GameViewer/master/MLBGamesScreenShot.png)
 
 Gameviewer Install - 32-bit
 
