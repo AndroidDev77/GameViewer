@@ -3,8 +3,10 @@ cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)
 set(CMAKE_SYSTEM_VERSION 10.0.17763.0 CACHE PATH  "" )
 set(QT_LIB "F:/Qt/5.12.2/msvc2017/lib" CACHE PATH  "Qt Library Path" )
 set(QT_INCLUDE "F:/Qt/5.12.2/msvc2017/include" CACHE PATH  "Qt Include Path" )
-set(CURL_LIB "F:/Scratch/curl-7.66.0/curl-7.66.0/include" CACHE PATH  "Curl Library Path" )
-set(CURL_INCLUDE "F:/Scratch/curl-7.66.0/curl-7.66.0/build/Win32/VC15/DLL Debug" CACHE PATH  "Curl Include Path" )
+set(CURL_INCLUDE "F:/Scratch/curl-7.66.0/curl-7.66.0/include" CACHE PATH  "Curl Library Path" )
+set(CURL_LIB "F:/Scratch/curl-7.66.0/curl-7.66.0/build/Win32/VC15/DLL Debug" CACHE PATH  "Curl Include Path" )
+set(JSON_INCLUDE "F:/Scratch/vcpkg/installed/x86-windows/include" CACHE PATH  "JSON Include Path" )
+set(JSON_LIB "F:/Scratch/vcpkg/installed/x86-windows/lib"  CACHE PATH  "JSON Library Path" )
 project(GameViewer CXX)
 
 ################################################################################
@@ -142,10 +144,10 @@ endif()
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "$<$<CONFIG:Debug>:"
-            QT_INCLUDE";"
-            QT_INCLUDE"/QtGui;"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../../../Scratch/vcpkg/installed/x86-windows/include"
-            CURL_INCLUDE";"
+            ${QT_INCLUDE};
+            ${QT_INCLUDE}/QtGui;
+            ${JSON_INCLUDE};
+            ${CURL_INCLUDE}
         ">"
     )
 endif()
@@ -271,9 +273,18 @@ target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
     target_link_directories(${PROJECT_NAME} PUBLIC
         "$<$<CONFIG:Debug>:"
-            QT_LIB
-            CURL_LIB
+            ${QT_LIB};
+			${JSON_LIB};
+            ${CURL_LIB}
         ">"
     )
 endif()
 
+add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/mlbBackground.jpg
+                $(OutDir)/mlbBackground.jpg
+		COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/MLBGamesScreenShot.png
+                $(OutDir)/MLBGamesScreenShot.png)
